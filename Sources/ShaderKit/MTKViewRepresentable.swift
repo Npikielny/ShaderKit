@@ -31,13 +31,15 @@ public struct MTKViewRepresentable: NSViewRepresentable {
     public init(
         view: MTKView,
         viewHandler: MTKViewRepresentableDelegate? = nil,
-        configuration: RunConfiguration = .rate(60)
+        configuration: RunConfiguration = .rate(60),
+        delegate: MTKViewDelegate? = nil
     ) {
         self.view = view
         self.viewHandler = viewHandler
         configuration.validate()
         self.configuration = configuration
         
+        self.delegate = delegate
         activate()
     }
     
@@ -64,12 +66,14 @@ public struct MTKViewRepresentable: UIViewRepresentable {
     public init(
         view: MTKView,
         viewHandler: MTKViewRepresentableDelegate? = nil,
-        configuration: RunConfiguration = .rate(60)
+        configuration: RunConfiguration = .rate(60),
+        delegate: MTKViewDelegate? = nil
     ) {
         self.view = view
         self.viewHandler = viewHandler
         configuration.validate()
         self.configuration = configuration
+        self.delegate = delegate
         
         activate()
     }
@@ -123,6 +127,7 @@ extension MTKViewRepresentable {
         view: MTKView? = nil,
         device: MTLDevice? = MTLCreateSystemDefaultDevice(),
         viewHandler: MTKViewRepresentableDelegate? = nil,
+        delegate: MTKViewDelegate? = nil,
         configuration: RunConfiguration = .none
     ) {
         if let view = view {
@@ -134,6 +139,7 @@ extension MTKViewRepresentable {
         self.viewHandler = viewHandler
         self.configuration = configuration
         self.device = device
+        self.delegate = delegate
         
         activate()
     }

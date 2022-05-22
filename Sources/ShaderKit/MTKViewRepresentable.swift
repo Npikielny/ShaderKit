@@ -12,15 +12,15 @@ import UIKit
 #endif
 
 
-protocol MTKViewRepresentableDelegate  {
+public protocol MTKViewRepresentableDelegate  {
     func updateMTKView(_ mtkView: MTKView, context: MTKViewRepresentable.Context)
 }
 
 #if os(macOS)
-struct MTKViewRepresentable: NSViewRepresentable {
-    var view: MTKView
-    var viewHandler: MTKViewRepresentableDelegate? = nil
-    var configuration: RunConfiguration = .rate(60)  {
+public struct MTKViewRepresentable: NSViewRepresentable {
+    public var view: MTKView
+    public var viewHandler: MTKViewRepresentableDelegate? = nil
+    public var configuration: RunConfiguration = .rate(60)  {
         didSet {
             activate()
         }
@@ -28,7 +28,7 @@ struct MTKViewRepresentable: NSViewRepresentable {
     
     private var timer: Timer? = nil
     
-    init(
+    public init(
         view: MTKView,
         viewHandler: MTKViewRepresentableDelegate? = nil,
         configuration: RunConfiguration = .rate(60)
@@ -41,19 +41,19 @@ struct MTKViewRepresentable: NSViewRepresentable {
         activate()
     }
     
-    func makeNSView(context: Context) -> MTKView {
+    public func makeNSView(context: Context) -> MTKView {
         view
     }
     
-    func updateNSView(_ nsView: MTKView, context: Context) {
+    public func updateNSView(_ nsView: MTKView, context: Context) {
         viewHandler?.updateMTKView(nsView, context: context)
     }
 }
 #else
-struct MTKViewRepresentable: UIViewRepresentable {
-    var view: MTKView
-    var viewHandler: MTKViewRepresentableDelegate? = nil
-    var configuration: RunConfiguration = .rate(60) {
+public struct MTKViewRepresentable: UIViewRepresentable {
+    public var view: MTKView
+    public var viewHandler: MTKViewRepresentableDelegate? = nil
+    public var configuration: RunConfiguration = .rate(60) {
         didSet {
             activate()
         }
@@ -61,7 +61,7 @@ struct MTKViewRepresentable: UIViewRepresentable {
     
     private var timer: Timer? = nil
     
-    init(
+    public init(
         view: MTKView,
         viewHandler: MTKViewRepresentableDelegate? = nil,
         configuration: RunConfiguration = .rate(60)
@@ -85,7 +85,7 @@ struct MTKViewRepresentable: UIViewRepresentable {
 #endif
 
 extension MTKViewRepresentable {
-    enum RunConfiguration {
+    public enum RunConfiguration {
         case timer(Timer)
         case rate(_ fps: Int)
         case none
@@ -101,17 +101,17 @@ extension MTKViewRepresentable {
         }
     }
     
-    var device: MTLDevice? {
+    public var device: MTLDevice? {
         get { view.device }
         set { view.device = newValue }
     }
     
-    var delegate: MTKViewDelegate? {
+    public var delegate: MTKViewDelegate? {
         get { view.delegate }
         set { view.delegate = newValue }
     }
     
-    init?() {
+    public init?() {
         view = MTKView()
         view.device = MTLCreateSystemDefaultDevice()
         configuration = .none
@@ -119,7 +119,7 @@ extension MTKViewRepresentable {
         activate()
     }
     
-    init(
+    public init(
         view: MTKView? = nil,
         device: MTLDevice? = MTLCreateSystemDefaultDevice(),
         viewHandler: MTKViewRepresentableDelegate? = nil,

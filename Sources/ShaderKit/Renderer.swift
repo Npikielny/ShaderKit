@@ -14,7 +14,7 @@ public protocol RendererDelegate: NSObject {
     func draw(in view: MTKView, with commandBuffer: MTLCommandBuffer?)
 }
 
-public class BaseRenderer: NSObject {
+open class BaseRenderer: NSObject {
     public var device: MTLDevice?
     public lazy var queue: MTLCommandQueue? = device?.makeCommandQueue()
     public var semaphore: DispatchSemaphore

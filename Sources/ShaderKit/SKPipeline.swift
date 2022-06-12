@@ -15,6 +15,20 @@ public struct ComputeFunction: SKFunction {
     var pipeline: MTLComputePipelineState
     
     public var completion: (Self) -> Void
+    
+    var name: String
+    
+    public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
+        guard let function = library?.makeFunction(name: name) else {
+            throw SKError(description: "Unable to make function named \(name)")
+        }
+        guard let kernel = try device?.makeComputePipelineState(function: function) else {
+            throw SKError(description: "Unabled to make kernel from function named \(name)")
+        }
+        
+        pipeline = kernel
+    }
+    
     public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
         let encoder = commandBuffer.makeComputeCommandEncoder()
         encoder?.setComputePipelineState(pipeline)
@@ -43,6 +57,10 @@ internal struct RenderFunctionComponent: SKFunction {
     var component: Component
     
     public var completion: (Self) -> Void
+    
+    mutating func initialize(device: MTLDevice?, library: MTLLibrary?) {
+        
+    }
     
     public func encode(encoder: MTLRenderCommandEncoder?) {
         for (buffer, offset, index) in buffers {
@@ -89,6 +107,7 @@ extension MTLRenderCommandEncoder {
 }
 
 public struct RenderFunction: SKUnit {
+    
     var vertexFunction: RenderFunctionComponent
     var fragmentFunction: RenderFunctionComponent
     
@@ -96,6 +115,14 @@ public struct RenderFunction: SKUnit {
     
     var renderPassDescriptor: RenderPassDescriptor = .default
     var completion: (_ function: Self) -> Void
+    
+    var vertexName, fragmentName: String
+    
+    public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
+        vertexFunction.initialize(device: device, library: library)
+        fragmentFunction.initialize(device: device, library: library)
+        // TODO: Finish
+    }
     
     public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
         let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: {

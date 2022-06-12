@@ -69,19 +69,19 @@ extension RenderFunctionComponent {
 }
 
 extension MTLRenderCommandEncoder {
-    internal func setBuffer(_ buffer: MTLBuffer, offset: Int, index: Int, component: RenderFunctionComponent.Component) {
+    func setBuffer(_ buffer: MTLBuffer, offset: Int, index: Int, component: RenderFunctionComponent.Component) {
         component == .vertex ?
         setVertexBuffer(buffer, offset: offset, index: index) :
         setFragmentBuffer(buffer, offset: offset, index: index)
     }
     
-    internal func setTexture(_ texture: MTLTexture, index: Int, component: RenderFunctionComponent.Component) {
+    func setTexture(_ texture: MTLTexture, index: Int, component: RenderFunctionComponent.Component) {
         component == .vertex ?
         setVertexTexture(texture, index: index) :
         setFragmentTexture(texture, index: index)
     }
     
-    internal func setBytes(_ bytes: UnsafeRawPointer, length: Int, index: Int, component: RenderFunctionComponent.Component) {
+    func setBytes(_ bytes: UnsafeRawPointer, length: Int, index: Int, component: RenderFunctionComponent.Component) {
         component == .vertex ?
         setVertexBytes(bytes, length: length, index: index) :
         setFragmentBytes(bytes, length: length, index: index)

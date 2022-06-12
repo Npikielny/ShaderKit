@@ -5,14 +5,22 @@ protocol SKUnit {
     func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor)
 }
 
-protocol Shader {
+protocol SKShader {
     @ShaderBuilder
-    var pipeline: SKUnit { get }
-    func initialize(device: MTLDevice?, library: MTLLibrary?)
+    static func pipeline() -> SKUnit
+}
+
+struct MyShader: SKShader {
+    static func pipeline() -> SKUnit {
+        ComputeFunction(name: "test compute")
+        RenderFunction(vertexName: "copyVerts", fragmentName: "copyFrag")
+        CopyFunction { _ in }
+        // TODO: Check if control flow messes with inialization and make sure it is not rebuilt every call.
+    }
 }
 
 @resultBuilder
-struct ShaderBuilder {
+public struct ShaderBuilder {
     struct OpaqueShader: SKUnit {
         var initialize: (MTLDevice?, MTLLibrary?) throws -> Void
         

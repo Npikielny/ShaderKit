@@ -8,14 +8,15 @@
 import Metal
 
 public struct ComputeFunction: SKFunction {
-    var textures: [(texture: MTLTexture, index: Int)]
-    var buffers: [(buffer: MTLBuffer, offset: Int, index: Int)]
-    var constants: [(MTLCommandEncoder?) -> Void]
-    var runtimeResources: (MTLCommandEncoder?) -> Void
-    var pipeline: MTLComputePipelineState
+    var textures: [(texture: MTLTexture, index: Int)] = []
+    var buffers: [(buffer: MTLBuffer, offset: Int, index: Int)] = []
+    var constants: [(MTLCommandEncoder?) -> Void] = []
+    /**Handles resources that change on a frame by frame basis**/
+    var runtimeResources: (MTLCommandEncoder?) -> Void = { _ in }
+    var pipeline: MTLComputePipelineState? = nil
     
-    public var completion: (Self) -> Void
-    
+    public var completion: (Self) -> Void = { _ in }
+    /**The name of the kernel function to compile**/
     var name: String
     
     public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
@@ -30,6 +31,10 @@ public struct ComputeFunction: SKFunction {
     }
     
     public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
+        guard let pipeline = pipeline else {
+            fatalError("Compute pipeline \(name) not initialized. This could be because its parent's initializer was never called.")
+        }
+
         let encoder = commandBuffer.makeComputeCommandEncoder()
         encoder?.setComputePipelineState(pipeline)
         for (buffer, offset, index) in buffers {
@@ -49,14 +54,14 @@ public struct ComputeFunction: SKFunction {
 }
 
 internal struct RenderFunctionComponent: SKFunction {
-    var textures: [(texture: MTLTexture, index: Int)]
-    var buffers: [(buffer: MTLBuffer, offset: Int, index: Int)]
-    var constants: [(MTLRenderCommandEncoder?) -> Void]
-    var runtimeResources: (MTLRenderCommandEncoder?) -> Void
+    var textures: [(texture: MTLTexture, index: Int)] = []
+    var buffers: [(buffer: MTLBuffer, offset: Int, index: Int)] = []
+    var constants: [(MTLRenderCommandEncoder?) -> Void] = []
+    var runtimeResources: (MTLRenderCommandEncoder?) -> Void = { _ in }
     
     var component: Component
     
-    public var completion: (Self) -> Void
+    public var completion: (Self) -> Void = { _ in }
     
     mutating func initialize(device: MTLDevice?, library: MTLLibrary?) {
         
@@ -108,15 +113,18 @@ extension MTLRenderCommandEncoder {
 
 public struct RenderFunction: SKUnit {
     
-    var vertexFunction: RenderFunctionComponent
-    var fragmentFunction: RenderFunctionComponent
+    var vertexFunction = RenderFunctionComponent(component: .vertex)
+    var fragmentFunction = RenderFunctionComponent(component: .fragment)
     
-    var renderPipeline: MTLRenderPipelineState
+    var renderPipeline: MTLRenderPipelineState? = nil
     
     var renderPassDescriptor: RenderPassDescriptor = .default
-    var completion: (_ function: Self) -> Void
+    var completion: (_ function: Self) -> Void = { _ in }
     
-    var vertexName, fragmentName: String
+    /**The name of the vertex function to compile*/
+    var vertexName: String
+    /**The name of the fragment function to compile*/
+    var fragmentName: String
     
     public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
         vertexFunction.initialize(device: device, library: library)
@@ -127,11 +135,15 @@ public struct RenderFunction: SKUnit {
     public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
         let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: {
             switch self.renderPassDescriptor {
-                case .default: return renderPassDescriptor
+                case .`default`: return renderPassDescriptor
                 case .custom(let descriptor): return descriptor
             }
         }()
         )
+        guard let renderPipeline = renderPipeline else {
+            fatalError("Render pipeline with vertex function \(vertexName) and fragment function \(fragmentName) not initialized. This could be because its parent's initializer was never called.")
+        }
+
         encoder?.setRenderPipelineState(renderPipeline)
         
         vertexFunction.encode(encoder: encoder)
@@ -142,7 +154,24 @@ public struct RenderFunction: SKUnit {
     }
     
     enum RenderPassDescriptor {
+        /**Uses the frame's render pass descriptor–this usually is drawing to a MTLDrawable*/
         case `default`
         case custom(MTLRenderPassDescriptor)
     }
+}
+
+public struct CopyFunction: SKUnit {
+    mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {}
+    
+    /**The copy operation to run*/
+    public var operation: (MTLBlitCommandEncoder?) -> Void
+    public var completion: (Self) -> Void = { _ in }
+    
+    func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
+        let blitEncoder = commandBuffer.makeBlitCommandEncoder()
+        operation(blitEncoder)
+        blitEncoder?.endEncoding()
+    }
+    
+    
 }

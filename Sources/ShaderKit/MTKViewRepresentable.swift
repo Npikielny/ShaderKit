@@ -43,6 +43,21 @@ public struct MTKViewRepresentable: NSViewRepresentable {
         activate()
     }
     
+    public init(
+        view: MTKView,
+        viewHandler: MTKViewRepresentableDelegate? = nil,
+        configuration: RunConfiguration = .rate(60),
+        shader: SKUnit
+    ) {
+        self.view = view
+        self.viewHandler = viewHandler
+        configuration.validate()
+        self.configuration = configuration
+        
+        self.delegate = ShaderDelegate(shader: shader)
+        activate()
+    }
+    
     public func makeNSView(context: Context) -> MTKView {
         view
     }
@@ -75,6 +90,21 @@ public struct MTKViewRepresentable: UIViewRepresentable {
         self.configuration = configuration
         self.delegate = delegate
         
+        activate()
+    }
+    
+    public init(
+        view: MTKView,
+        viewHandler: MTKViewRepresentableDelegate? = nil,
+        configuration: RunConfiguration = .rate(60),
+        shader: SKUnit
+    ) {
+        self.view = view
+        self.viewHandler = viewHandler
+        configuration.validate()
+        self.configuration = configuration
+        
+        self.delegate = ShaderDelegate(shader: shader)
         activate()
     }
     
@@ -155,6 +185,44 @@ extension MTKViewRepresentable {
                 }
             case .none:
                 timer = nil
+        }
+    }
+}
+
+extension MTKViewRepresentable {
+    class ShaderDelegate: NSObject, MTKViewDelegate {
+        var shader: SKUnit
+        
+        var device = MTLCreateSystemDefaultDevice()
+        lazy var commandQueue = device?.makeCommandQueue()
+        
+        var semaphore = DispatchSemaphore(value: 1)
+        
+        init(shader: SKUnit) {
+            self.shader = shader
+            try! self.shader.initialize(device: device, library: nil)
+        }
+        
+        func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+            
+        }
+        
+        func draw(in view: MTKView) {
+            guard //let drawable = view.currentDrawable,
+                  let renderPassDescriptor = view.currentRenderPassDescriptor,
+                  let commandBuffer = commandQueue?.makeCommandBuffer() else {
+                return
+            }
+            
+            semaphore.wait()
+            commandBuffer.addCompletedHandler { [weak self] _ in
+                self?.semaphore.signal()
+            }
+            
+            shader.encode(commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
+            
+            commandBuffer.commit()
+            
         }
     }
 }

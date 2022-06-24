@@ -1,4 +1,5 @@
 import Metal
+import MetalKit
 
 public protocol SKUnit {
     mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws

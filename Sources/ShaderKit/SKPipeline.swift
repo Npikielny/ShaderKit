@@ -161,13 +161,13 @@ public struct RenderFunction: SKUnit {
 }
 
 public struct CopyFunction: SKUnit {
-    mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {}
+    mutating public func initialize(device: MTLDevice?, library: MTLLibrary?) throws {}
     
     /**The copy operation to run*/
     public var operation: (MTLBlitCommandEncoder?) -> Void
     public var completion: (Self) -> Void = { _ in }
     
-    func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
+    public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
         let blitEncoder = commandBuffer.makeBlitCommandEncoder()
         operation(blitEncoder)
         blitEncoder?.endEncoding()

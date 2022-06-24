@@ -6,7 +6,7 @@ public protocol SKUnit {
     func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor)
 }
 
-protocol SKShader {
+public protocol SKShader {
     @ShaderBuilder
     func pipeline() -> SKUnit
 }

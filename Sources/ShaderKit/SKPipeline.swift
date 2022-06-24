@@ -17,7 +17,7 @@ public struct ComputeFunction: SKFunction {
     
     public var completion: (Self) -> Void = { _ in }
     /**The name of the kernel function to compile**/
-    var name: String
+    public var name: String
     
     public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
         guard let function = library?.makeFunction(name: name) else {
@@ -122,9 +122,9 @@ public struct RenderFunction: SKUnit {
     var completion: (_ function: Self) -> Void = { _ in }
     
     /**The name of the vertex function to compile*/
-    var vertexName: String
+    public var vertexName: String
     /**The name of the fragment function to compile*/
-    var fragmentName: String
+    public var fragmentName: String
     
     public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
         vertexFunction.initialize(device: device, library: library)

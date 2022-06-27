@@ -141,7 +141,7 @@ public struct RenderFunction: SKUnit {
         descriptor.vertexFunction = vertexFunction.function
         descriptor.fragmentFunction = fragmentFunction.function
         descriptor.sampleCount = 1
-        descriptor.colorAttachments[0].pixelFormat = .rgba32Float
+        descriptor.colorAttachments[0].pixelFormat = .rgba16Float
         
         renderPipeline = try device?.makeRenderPipelineState(descriptor: descriptor)
     }

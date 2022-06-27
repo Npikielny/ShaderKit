@@ -65,10 +65,13 @@ internal struct RenderFunctionComponent: SKFunction {
     
     var component: Component
     
+    var name: String
+    var function: MTLFunction? = nil
+    
     public var completion: (Self) -> Void = { _ in }
     
     mutating func initialize(device: MTLDevice?, library: MTLLibrary?) {
-        
+        function = library?.makeFunction(name: name)
     }
     
     public func encode(encoder: MTLRenderCommandEncoder?) {
@@ -117,28 +120,30 @@ extension MTLRenderCommandEncoder {
 
 public struct RenderFunction: SKUnit {
     
-    var vertexFunction = RenderFunctionComponent(component: .vertex)
-    var fragmentFunction = RenderFunctionComponent(component: .fragment)
+    var vertexFunction: RenderFunctionComponent
+    var fragmentFunction: RenderFunctionComponent
     
     var renderPipeline: MTLRenderPipelineState? = nil
     
     var renderPassDescriptor: RenderPassDescriptor = .default
     var completion: (_ function: Self) -> Void = { _ in }
     
-    /**The name of the vertex function to compile*/
-    var vertexName: String
-    /**The name of the fragment function to compile*/
-    var fragmentName: String
-    
     public init(vertexName: String, fragmentName: String) {
-        self.vertexName = vertexName
-        self.fragmentName = fragmentName
+        vertexFunction = RenderFunctionComponent(component: .vertex, name: vertexName)
+        fragmentFunction = RenderFunctionComponent(component: .fragment, name: fragmentName)
     }
     
     public mutating func initialize(device: MTLDevice?, library: MTLLibrary?) throws {
         vertexFunction.initialize(device: device, library: library)
         fragmentFunction.initialize(device: device, library: library)
-        // TODO: Finish
+        
+        let descriptor = MTLRenderPipelineDescriptor()
+        descriptor.vertexFunction = vertexFunction.function
+        descriptor.fragmentFunction = fragmentFunction.function
+        descriptor.sampleCount = 1
+        descriptor.colorAttachments[0].pixelFormat = .rgba32Float
+        
+        renderPipeline = try device?.makeRenderPipelineState(descriptor: descriptor)
     }
     
     public func encode(commandBuffer: MTLCommandBuffer, renderPassDescriptor: MTLRenderPassDescriptor) {
@@ -150,7 +155,7 @@ public struct RenderFunction: SKUnit {
         }()
         )
         guard let renderPipeline = renderPipeline else {
-            fatalError("Render pipeline with vertex function \(vertexName) and fragment function \(fragmentName) not initialized. This could be because its parent's initializer was never called.")
+            fatalError("Render pipeline with vertex function \(vertexFunction.name) and fragment function \(fragmentFunction.name) not initialized. This could be because its parent's initializer was never called.")
         }
 
         encoder?.setRenderPipelineState(renderPipeline)

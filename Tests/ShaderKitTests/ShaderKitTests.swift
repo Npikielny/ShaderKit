@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import ShaderKit
 
 final class ShaderKitTests: XCTestCase {
@@ -11,6 +12,12 @@ final class ShaderKitTests: XCTestCase {
         var lst = Array(0...10)
         lst.apply { $0.increment() }
         XCTAssert(lst == Array(1...11))
+    }
+    
+    struct Content: View {
+        var body: some View {
+            Text("E")
+        }
     }
 }
 

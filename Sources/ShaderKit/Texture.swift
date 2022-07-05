@@ -21,7 +21,7 @@ public struct LoadableTexture {
 }
 
 public protocol TextureConstructor {
-    func convert() -> Texture
+    func construct() -> Texture
 }
 
 public enum Texture: TextureConstructor {
@@ -32,7 +32,7 @@ public enum Texture: TextureConstructor {
         .loadable(LoadableTexture(path: path))
     }
     
-    public func convert() -> Texture { self }
+    public func construct() -> Texture { self }
     
     public static func texture(_ texture: MTLTexture) -> Self { .raw(texture) }
 }
@@ -49,6 +49,23 @@ extension Array where Element == Texture {
                 case let .loadable(loadable):
                     let texture = loadable.texture(device: device)
                     encoder.setTexture(texture, index: index)
+                    self[index] = .raw(texture)
+            }
+        }
+    }
+    
+    mutating func encode(
+        device: MTLDevice,
+        encoder: MTLRenderCommandEncoder,
+        function: RenderFunction
+    ) {
+        for (index, texture) in self.enumerated() {
+            switch texture {
+                case let .raw(texture):
+                    encoder.setTexture(texture, index: index, function: function)
+                case let .loadable(loadable):
+                    let texture = loadable.texture(device: device)
+                    encoder.setTexture(texture, index: index, function: function)
                     self[index] = .raw(texture)
             }
         }

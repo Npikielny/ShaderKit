@@ -10,8 +10,8 @@ import MetalKit
 public class CommandBuffer: Operation {
     var execution: CommandBuffer
     
-    public init(@CommandBufferBuilder c: () -> CommandBuffer) {
-        self.execution = c()
+    public init(@CommandBufferBuilder commandBuffer: () -> CommandBuffer) {
+        self.execution = commandBuffer()
     }
     
     func execute(commandQueue: MTLCommandQueue) async throws {

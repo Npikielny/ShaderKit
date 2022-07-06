@@ -41,6 +41,12 @@ public enum Texture: TextureConstructor {
     public static func texture(_ texture: MTLTexture) -> Self { .raw(texture) }
 }
 
+extension String: TextureConstructor {
+    public func construct() -> Texture {
+        .loadable(LoadableTexture(path: self))
+    }
+}
+
 extension Array where Element == Texture {
     public mutating func encode(
         device: MTLDevice,

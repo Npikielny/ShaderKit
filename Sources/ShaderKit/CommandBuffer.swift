@@ -9,11 +9,11 @@ import MetalKit
 
 public class CommandBuffer: Operation {
     var execution: CommandBuffer
-    
+
     public init(@CommandBufferBuilder commandBuffer: () -> CommandBuffer) {
         self.execution = commandBuffer()
     }
-    
+
     public func execute(commandQueue: MTLCommandQueue) async throws {
         try await execution.execute(commandQueue: commandQueue)
     }
@@ -25,11 +25,11 @@ extension CommandBuffer {
         public static func buildBlock(_ components: SKConstructor...) -> CommandBuffer {
             CommandBuffer.constructors(components)
         }
-        
+
         public static func buildBlock(_ components: SKShader...) -> CommandBuffer {
             CommandBuffer.shaders(components)
         }
-        
+
         public static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
             components.reduce(.empty, +)
         }
@@ -41,9 +41,9 @@ extension CommandBuffer {
         case constructors([SKConstructor])
         case shaders([SKShader])
         case mix(CommandBuffer, CommandBuffer)
-        
+
         static var empty: Self { .shaders([]) }
-        
+
         private func concatenate(device: MTLDevice) throws -> [SKShader] {
             switch self {
                 case .constructors(let array):
@@ -55,11 +55,11 @@ extension CommandBuffer {
                     return try commandBufferL.concatenate(device: device) + r
             }
         }
-        
+
         mutating func initialize(device: MTLDevice) throws {
             self = .shaders(try concatenate(device: device))
         }
-        
+
         mutating private func execute(device: MTLDevice, commandBuffer: MTLCommandBuffer) throws {
             if case let .shaders(shaders) = self {
                 for index in 0..<shaders.count {
@@ -70,7 +70,7 @@ extension CommandBuffer {
                 try execute(device: device, commandBuffer: commandBuffer)
             }
         }
-        
+
         mutating func execute(commandQueue: MTLCommandQueue) async throws {
             guard let commandBuffer = commandQueue.makeCommandBuffer() else {
                 throw ShaderError("Unabled to make command buffer with \(commandQueue.device.name)")
@@ -79,7 +79,7 @@ extension CommandBuffer {
             commandBuffer.commit()
             commandBuffer.waitUntilCompleted()
         }
-        
+
         static func + (lhs: Self, rhs: Self) -> Self {
             switch (lhs, rhs) {
                 case let (.constructors(c1), .constructors(c2)):

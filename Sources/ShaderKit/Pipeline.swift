@@ -73,9 +73,11 @@ public class ComputePipeline: SKShader {
     
     public func encode(commandBuffer: MTLCommandBuffer) {
         guard let commandEncoder = commandBuffer.makeComputeCommandEncoder() else { fatalError("Unable to make command encoder") }
+        commandEncoder.setComputePipelineState(pipeline)
         textures.encode(device: device, encoder: commandEncoder)
         buffers.encode(device: device, encoder: commandEncoder)
         commandEncoder.dispatchThreads(threadGroups, threadsPerThreadgroup: threadGroupSize)
+        commandEncoder.endEncoding()
     }
 }
 

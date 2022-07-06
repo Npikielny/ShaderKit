@@ -21,16 +21,16 @@ public class CommandBuffer: Operation {
 
 extension CommandBuffer {
     @resultBuilder
-    struct CommandBufferBuilder {
-        static func buildBlock(_ components: SKConstructor...) -> CommandBuffer {
+    public struct CommandBufferBuilder {
+        public static func buildBlock(_ components: SKConstructor...) -> CommandBuffer {
             CommandBuffer.constructors(components)
         }
         
-        static func buildBlock(_ components: SKShader...) -> CommandBuffer {
+        public static func buildBlock(_ components: SKShader...) -> CommandBuffer {
             CommandBuffer.shaders(components)
         }
         
-        static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
+        public static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
             components.reduce(.empty, +)
         }
     }

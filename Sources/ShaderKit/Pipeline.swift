@@ -99,7 +99,7 @@ public class RenderPipeline: SKShader {
     
     public init(
         device: MTLDevice,
-        pipelineConstructor: RenderPipelineDescriptor,
+        pipelineConstructor: RenderPipelineDescriptorConstructor,
         fragment: String,
         vertex: String,
         vertexTextures: [TextureConstructor],

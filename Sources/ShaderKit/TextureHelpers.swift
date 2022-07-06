@@ -63,12 +63,17 @@ extension Texture {
     public static func newTexture(
         device: MTLDevice,
         texture: inout Texture,
+        pixelFormat: MTLPixelFormat? = nil,
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
     ) -> Texture? {
         let descriptor = MTLTextureDescriptor()
         let texture = texture.unwrap(device: device)
-        descriptor.pixelFormat = texture.pixelFormat
+        if let pixelFormat = pixelFormat {
+            descriptor.pixelFormat = pixelFormat
+        } else {
+            descriptor.pixelFormat = texture.pixelFormat
+        }
         descriptor.width = texture.width
         descriptor.height = texture.height
         descriptor.storageMode = storageMode

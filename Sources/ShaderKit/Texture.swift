@@ -8,7 +8,11 @@
 import MetalKit
 
 public struct LoadableTexture {
-    public var path: String
+    public init(path: String) {
+        self.path = path
+    }
+    
+    var path: String
     
     public func texture(device: MTLDevice) -> MTLTexture {
         let textureLoader = MTKTextureLoader(device: device)

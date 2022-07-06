@@ -41,7 +41,7 @@ public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
 extension ArrayBuffer where Encoder == MTLComputeCommandEncoder {}
 
 public struct Bytes<Encoder: MTLCommandEncoder> {
-    public var bytes: (Encoder, Int) -> Void
+    var bytes: (Encoder, Int) -> Void
 }
 
 extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {

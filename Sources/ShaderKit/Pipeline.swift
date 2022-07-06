@@ -8,11 +8,19 @@
 import MetalKit
 
 public struct StaticComputeShader: SKConstructor {
-    public var name: String
+    public init(name: String, textures: [TextureConstructor] = [TextureConstructor](), buffers: [Buffer<MTLComputeCommandEncoder>] = [Buffer<MTLComputeCommandEncoder>](), threadGroupSize: MTLSize, threadGroups: MTLSize) {
+        self.name = name
+        self.textures = textures
+        self.buffers = buffers
+        self.threadGroupSize = threadGroupSize
+        self.threadGroups = threadGroups
+    }
+    
+    public let name: String
     public var textures = [TextureConstructor]()
     public var buffers = [Buffer<MTLComputeCommandEncoder>]()
     
-    public var threadGroupSize: MTLSize
+    public let threadGroupSize: MTLSize
     public var threadGroups: MTLSize
     
     public func initialize(device: MTLDevice) throws -> ComputePipeline {
@@ -33,12 +41,12 @@ public struct StaticComputeShader: SKConstructor {
 }
 
 public class ComputePipeline: SKShader {
-    public var pipeline: MTLComputePipelineState
+    public let pipeline: MTLComputePipelineState
     public var textures: [Texture]
     public var buffers: [Buffer<MTLComputeCommandEncoder>]
-    public var device: MTLDevice
+    public let device: MTLDevice
     
-    public var threadGroupSize: MTLSize
+    public let threadGroupSize: MTLSize
     public var threadGroups: MTLSize
     
     public init(
@@ -76,17 +84,17 @@ enum RenderFunction {
 }
 
 public class RenderPipeline: SKShader {
-    public var pipelineConstructor: (RenderPipelineDescriptor, fragment: MTLFunction, vertex: MTLFunction)
+    public let pipelineConstructor: (RenderPipelineDescriptor, fragment: MTLFunction, vertex: MTLFunction)
     private var pipeline: MTLRenderPipelineState? = nil
     public var vertexTextures: [Texture]
     public var fragmentTextures: [Texture]
     public var vertexBuffers: [Buffer<MTLRenderCommandEncoder>]
     public var fragmentBuffers: [Buffer<MTLRenderCommandEncoder>]
     
-    public var device: MTLDevice
+    public let device: MTLDevice
     
-    var renderPassDescriptor: RenderPassDescriptor
-    var workingDescriptor: MTLRenderPassDescriptor?
+    let renderPassDescriptor: RenderPassDescriptor
+    private var workingDescriptor: MTLRenderPassDescriptor?
     
     public init(
         device: MTLDevice,

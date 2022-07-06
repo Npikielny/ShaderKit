@@ -39,6 +39,104 @@ public enum Texture: TextureConstructor {
     public func construct() -> Texture { self }
     
     public static func texture(_ texture: MTLTexture) -> Self { .raw(texture) }
+    
+    public mutating func unwrap(device: MTLDevice) -> MTLTexture {
+        switch self {
+            case .raw(let texture):
+                return texture
+            case .loadable(let loadableTexture):
+                let texture = loadableTexture.texture(device: device)
+                self = .raw(texture)
+                return texture
+        }
+    }
+    
+    public mutating func width(device: MTLDevice) -> Int {
+        unwrap(device: device).width
+    }
+    
+    public mutating func height(device: MTLDevice) -> Int {
+        unwrap(device: device).height
+    }
+    
+    public mutating func pixelFormat(device: MTLDevice) -> MTLPixelFormat {
+        unwrap(device: device).pixelFormat
+    }
+}
+
+extension Texture {
+    public static func newTexture(
+        device: MTLDevice,
+        pixelFormat: MTLPixelFormat,
+        width: Int,
+        height: Int,
+        storageMode: MTLStorageMode,
+        read: Bool = false,
+        write: Bool = false,
+        renderTarget: Bool = false
+    ) -> MTLTexture? {
+        newTexture(
+            device: device,
+            pixelFormat: pixelFormat,
+            width: width,
+            height: height,
+            storageMode: storageMode,
+            usage: MTLTextureUsage(
+                [] +
+                (renderTarget ? [.renderTarget] : []) +
+                (read ? [.shaderRead] : []) +
+                (write ? [.shaderWrite] : [])
+            )
+        )
+    }
+    
+    public static func newTexture(
+        device: MTLDevice,
+        pixelFormat: MTLPixelFormat,
+        width: Int,
+        height: Int,
+        storageMode: MTLStorageMode,
+        usage: MTLTextureUsage
+    ) -> MTLTexture? {
+        let descriptor = MTLTextureDescriptor()
+        descriptor.pixelFormat = pixelFormat
+        descriptor.width = width
+        descriptor.height = height
+        descriptor.storageMode = storageMode
+        descriptor.usage = usage
+        return device.makeTexture(descriptor: descriptor)
+    }
+    
+    public static func newTexture(
+        device: MTLDevice,
+        texture: inout Texture,
+        storageMode: MTLStorageMode,
+        usage: MTLTextureUsage
+    ) -> MTLTexture? {
+        let descriptor = MTLTextureDescriptor()
+        let texture = texture.unwrap(device: device)
+        descriptor.pixelFormat = texture.pixelFormat
+        descriptor.width = texture.width
+        descriptor.height = texture.height
+        descriptor.storageMode = storageMode
+        descriptor.usage = usage
+        return device.makeTexture(descriptor: descriptor)
+    }
+    
+    public static func newTexture(
+        device: MTLDevice,
+        texture: MTLTexture,
+        storageMode: MTLStorageMode,
+        usage: MTLTextureUsage
+    ) -> MTLTexture? {
+        let descriptor = MTLTextureDescriptor()
+        descriptor.pixelFormat = texture.pixelFormat
+        descriptor.width = texture.width
+        descriptor.height = texture.height
+        descriptor.storageMode = storageMode
+        descriptor.usage = usage
+        return device.makeTexture(descriptor: descriptor)
+    }
 }
 
 extension String: TextureConstructor {

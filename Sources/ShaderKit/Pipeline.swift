@@ -165,7 +165,7 @@ public class RenderPipeline: SKShader {
             guard let workingDescriptor = workingDescriptor else {
                 fatalError(
 """
-Working descriptor not set. This is due to using a `CommandBuffer` instead of a `RenderCommandBuffer` or not initializing with a renderPassDescriptor.
+Working descriptor not set. This is due to using a `CommandBuffer` instead of a `RenderBuffer` or not initializing with a renderPassDescriptor.
 """
                 )
             }

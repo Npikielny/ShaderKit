@@ -7,20 +7,28 @@
 
 import Metal
 
-protocol Operation {
+public protocol Operation {
     func execute(commandQueue: MTLCommandQueue) async throws
 }
 
-struct Execute: Operation {
+public struct Execute: Operation {
     var execute: (MTLDevice) async throws -> Void
     
-    func execute(commandQueue: MTLCommandQueue) async throws { try await execute(commandQueue.device) }
+    public init(execute: @escaping (MTLDevice) async throws -> Void) {
+        self.execute = execute
+    }
+    
+    public func execute(commandQueue: MTLCommandQueue) async throws { try await execute(commandQueue.device) }
 }
 
 public struct OperationSequence: Operation {
     var operations: [Operation]
     
-    func execute(commandQueue: MTLCommandQueue) async throws {
+    public init(operations: [Operation]) {
+        self.operations = operations
+    }
+    
+    public func execute(commandQueue: MTLCommandQueue) async throws {
         for operation in operations {
             try await operation.execute(commandQueue: commandQueue)
         }

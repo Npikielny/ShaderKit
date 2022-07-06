@@ -14,7 +14,7 @@ public class CommandBuffer: Operation {
         self.execution = commandBuffer()
     }
     
-    func execute(commandQueue: MTLCommandQueue) async throws {
+    public func execute(commandQueue: MTLCommandQueue) async throws {
         try await execution.execute(commandQueue: commandQueue)
     }
 }

@@ -11,6 +11,12 @@ public protocol ComputeBufferConstructor {
     func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation
 }
 
+extension ComputeBufferConstructor {
+    public func construct() -> Buffer<MTLComputeCommandEncoder> {
+        Buffer(self.enumerate())
+    }
+}
+
 public protocol RenderBufferConstructor {
     func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation
 }

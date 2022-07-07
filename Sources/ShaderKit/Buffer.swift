@@ -15,6 +15,53 @@ public protocol RenderBufferConstructor {
     func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation
 }
 
+public class Buffer<Encoder: MTLCommandEncoder> {
+    var representation: Representation
+    
+    public init(_ representation: Representation) {
+        self.representation = representation
+    }
+    
+    public init<T>(_ array: [T]) {
+        representation = ArrayBuffer<Encoder>(array).enumerate()
+    }
+    
+    public init(_ bytes: Bytes<Encoder>) {
+        representation = .bytes(bytes)
+    }
+    
+    public enum Representation {
+        case raw(MTLBuffer)
+        case constructor(ArrayBuffer<Encoder>)
+        case bytes(Bytes<Encoder>)
+    }
+}
+
+extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
+        representation
+    }
+    
+    public convenience init(_ constructor: ComputeBufferConstructor) {
+        self.init(constructor.enumerate())
+    }
+    
+    public convenience init<T>(_ bytes: T) {
+        self.init(.bytes(Bytes(bytes)))
+    }
+}
+
+extension Buffer: RenderBufferConstructor where Encoder == MTLRenderCommandEncoder {
+    public func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation {
+        representation
+    }
+    
+    public convenience init(_ constructor: RenderBufferConstructor) {
+        self.init(constructor.enumerate())
+    }
+}
+
+
 public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
     var buffer: (MTLDevice) -> MTLBuffer?
     public init<T>(_ bytes: [T]) {
@@ -63,28 +110,6 @@ extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEnco
     }
     public func enumerate() -> Buffer<Encoder>.Representation { .bytes(self)
     }
-}
-
-public class Buffer<Encoder: MTLCommandEncoder> {
-    var representation: Representation
-    
-    public init(_ representation: Representation) {
-        self.representation = representation
-    }
-    
-    public init<T>(_ array: [T]) {
-        representation = ArrayBuffer<Encoder>(array).enumerate()
-    }
-    
-    public enum Representation {
-        case raw(MTLBuffer)
-        case constructor(ArrayBuffer<Encoder>)
-        case bytes(Bytes<Encoder>)
-    }
-}
-
-extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { representation }
 }
 
 extension Array where Element == Buffer<MTLComputeCommandEncoder> {

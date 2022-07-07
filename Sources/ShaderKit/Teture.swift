@@ -29,7 +29,7 @@ public protocol TextureConstructor {
 }
 
 extension TextureConstructor {
-    func construct() -> Texture {
+    public func construct() -> Texture {
         .init(enumerate())
     }
 }

@@ -10,7 +10,7 @@ import MetalKit
 extension Optional where Wrapped == MTLTexture {
     func wrap() -> Texture? {
         if let texture = self {
-            return .raw(texture)
+            return Texture(texture)
         } else {
             return nil
         }
@@ -62,7 +62,7 @@ extension Texture {
     
     public static func newTexture(
         device: MTLDevice,
-        texture: inout Texture,
+        texture: Texture,
         pixelFormat: MTLPixelFormat? = nil,
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage

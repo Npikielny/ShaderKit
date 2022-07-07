@@ -141,10 +141,10 @@ public class RenderPipeline: SKShader {
             switch pipelineConstructor.0 {
                 case let .pixelFormat(format):
                     return format
-                case let .texture(.raw(texture)):
-                    return texture.pixelFormat
-                case let .texture(.loadable(loadable)):
-                    return loadable.texture(device: device).pixelFormat
+                case let .texture(texture):
+                    return texture
+                        .unwrap(device: device)
+                        .pixelFormat
             }
         }()
         

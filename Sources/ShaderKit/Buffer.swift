@@ -8,7 +8,11 @@
 import MetalKit
 
 public protocol ComputeBufferConstructor {
-    func construct() -> Buffer<MTLComputeCommandEncoder>
+    func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation
+}
+
+public protocol RenderBufferConstructor {
+    func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation
 }
 
 public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
@@ -35,10 +39,11 @@ public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
         }
     }
     
-    public func construct() -> Buffer<Encoder> { .constructor(self) }
+    public func enumerate() -> Buffer<Encoder>.Representation { .constructor(self) }
 }
 
-extension ArrayBuffer where Encoder == MTLComputeCommandEncoder {}
+extension ArrayBuffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {}
+extension ArrayBuffer: RenderBufferConstructor where Encoder == MTLRenderCommandEncoder {}
 
 public struct Bytes<Encoder: MTLCommandEncoder> {
     var bytes: (Encoder, Int) -> Void
@@ -56,18 +61,31 @@ extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEnco
             encoder.setBytes([bytes], length: MemoryLayout<T>.stride, index: index)
         }
     }
-    public func construct() -> Buffer<Encoder> { .bytes(self) }
+    public func enumerate() -> Buffer<Encoder>.Representation { .bytes(self)
+    }
 }
 
-public enum Buffer<Encoder: MTLCommandEncoder> {
-    case raw(MTLBuffer)
-    case constructor(ArrayBuffer<Encoder>)
-    case bytes(Bytes<Encoder>)
+public class Buffer<Encoder: MTLCommandEncoder> {
+    var representation: Representation
     
-    public func construct() -> Buffer<Encoder> { self }
+    public init(_ representation: Representation) {
+        self.representation = representation
+    }
+    
+    public init<T>(_ array: [T]) {
+        representation = ArrayBuffer<Encoder>(array).enumerate()
+    }
+    
+    public enum Representation {
+        case raw(MTLBuffer)
+        case constructor(ArrayBuffer<Encoder>)
+        case bytes(Bytes<Encoder>)
+    }
 }
 
-extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {}
+extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { representation }
+}
 
 extension Array where Element == Buffer<MTLComputeCommandEncoder> {
     public mutating func encode(
@@ -75,7 +93,7 @@ extension Array where Element == Buffer<MTLComputeCommandEncoder> {
         encoder: MTLComputeCommandEncoder
     ) {
         for (index, buffer) in self.enumerated() {
-            switch buffer {
+            switch buffer.representation {
                 case let .raw(buffer):
                     encoder.setBuffer(buffer, offset: 0, index: index)
                 case let .constructor(buffer):
@@ -83,7 +101,7 @@ extension Array where Element == Buffer<MTLComputeCommandEncoder> {
                         fatalError("Unable to create buffer with device \(device)")
                     }
                     encoder.setBuffer(buffer, offset: 0, index: index)
-                    self[index] = .raw(buffer)
+                    self[index].representation = .raw(buffer)
                 case let .bytes(bytes):
                     bytes.bytes(encoder, index)
             }
@@ -98,7 +116,7 @@ extension Array where Element == Buffer<MTLRenderCommandEncoder> {
         renderFunction: RenderFunction
     ) {
         for (index, buffer) in self.enumerated() {
-            switch buffer {
+            switch buffer.representation {
                 case let .raw(buffer):
                     encoder.setBuffer(buffer, offset: 0, index: index, function: renderFunction)
                 case let .constructor(buffer):
@@ -106,7 +124,7 @@ extension Array where Element == Buffer<MTLRenderCommandEncoder> {
                         fatalError("Unable to create buffer with device \(device)")
                     }
                     encoder.setBuffer(buffer, offset: 0, index: index, function: renderFunction)
-                    self[index] = .raw(buffer)
+                    self[index].representation = .raw(buffer)
                 case let .bytes(bytes):
                     bytes.bytes(encoder, index)
             }
@@ -115,19 +133,19 @@ extension Array where Element == Buffer<MTLRenderCommandEncoder> {
 }
 
 extension Array: ComputeBufferConstructor {
-    public func construct() -> Buffer<MTLComputeCommandEncoder> {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
         .constructor(ArrayBuffer<MTLComputeCommandEncoder>(self))
     }
 }
 
 extension Int32: ComputeBufferConstructor {
-    public func construct() -> Buffer<MTLComputeCommandEncoder> {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
         .bytes(.init(self))
     }
 }
 
 extension Float: ComputeBufferConstructor {
-    public func construct() -> Buffer<MTLComputeCommandEncoder> {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
         .bytes(.init(self))
     }
 }

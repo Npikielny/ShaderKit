@@ -33,17 +33,48 @@ extension RenderBuffer {
     @resultBuilder
     public struct RenderBufferBuilder {
         public static func buildBlock(_ components: SKConstructor...) -> RenderBuffer {
-            RenderBuffer.constructors(components)
+            .constructors(components)
+        }
+        
+        public static func buildArray(_ components: [SKConstructor]) -> RenderBuffer {
+            .constructors(components)
+        }
+        
+        public static func buildOptional(_ component: SKConstructor?) -> RenderBuffer {
+            if let component = component {
+                return .constructors([component])
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: SKConstructor) -> RenderBuffer {
+            .constructors([component])
         }
         
         public static func buildBlock(_ components: SKShader...) -> RenderBuffer {
-            RenderBuffer.shaders(components)
+            .shaders(components)
+        }
+        
+        public static func buildArray(_ components: [SKShader]) -> RenderBuffer {
+            .shaders(components)
+        }
+        
+        public static func buildOptional(_ component: SKShader?) -> RenderBuffer {
+            if let component = component {
+                return .shaders([component])
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: SKShader) -> RenderBuffer {
+            .shaders([component])
         }
         
         public static func buildBlock(_ components: RenderBuffer...) -> RenderBuffer {
             components.reduce(.empty, +)
         }
-        
         
         public static func buildArray(_ components: [RenderBuffer]) -> RenderBuffer {
             components.reduce(.empty, +)

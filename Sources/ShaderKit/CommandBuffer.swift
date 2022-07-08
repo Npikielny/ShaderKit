@@ -23,13 +23,45 @@ extension CommandBuffer {
     @resultBuilder
     public struct CommandBufferBuilder {
         public static func buildBlock(_ components: SKConstructor...) -> CommandBuffer {
-            CommandBuffer.constructors(components)
+            .constructors(components)
         }
-
+        
+        public static func buildArray(_ components: [SKConstructor]) -> CommandBuffer {
+            .constructors(components)
+        }
+        
+        public static func buildOptional(_ component: SKConstructor?) -> CommandBuffer {
+            if let component = component {
+                return .constructors([component])
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: SKConstructor) -> CommandBuffer {
+            .constructors([component])
+        }
+        
         public static func buildBlock(_ components: SKShader...) -> CommandBuffer {
-            CommandBuffer.shaders(components)
+            .shaders(components)
         }
-
+        
+        public static func buildArray(_ components: [SKShader]) -> CommandBuffer {
+            .shaders(components)
+        }
+        
+        public static func buildOptional(_ component: SKShader?) -> CommandBuffer {
+            if let component = component {
+                return .shaders([component])
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: SKShader) -> CommandBuffer {
+            .shaders([component])
+        }
+        
         public static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
             components.reduce(.empty, +)
         }

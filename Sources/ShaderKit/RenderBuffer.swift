@@ -43,6 +43,23 @@ extension RenderBuffer {
         public static func buildBlock(_ components: RenderBuffer...) -> RenderBuffer {
             components.reduce(.empty, +)
         }
+        
+        
+        public static func buildArray(_ components: [RenderBuffer]) -> RenderBuffer {
+            components.reduce(.empty, +)
+        }
+        
+        public static func buildOptional(_ component: RenderBuffer?) -> RenderBuffer {
+            if let component = component {
+                return component
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: RenderBuffer) -> RenderBuffer {
+            component
+        }
     }
 }
 

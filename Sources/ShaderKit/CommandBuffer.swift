@@ -33,6 +33,22 @@ extension CommandBuffer {
         public static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
             components.reduce(.empty, +)
         }
+        
+        public static func buildArray(_ components: [CommandBuffer]) -> CommandBuffer {
+            components.reduce(.empty, +)
+        }
+        
+        public static func buildOptional(_ component: CommandBuffer?) -> CommandBuffer {
+            if let component = component {
+                return component
+            } else {
+                return .empty
+            }
+        }
+        
+        public static func buildEither(first component: CommandBuffer) -> CommandBuffer {
+            component
+        }
     }
 }
 

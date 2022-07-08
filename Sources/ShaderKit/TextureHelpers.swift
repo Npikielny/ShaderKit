@@ -55,6 +55,8 @@ extension Texture {
         
         if pixelFormat == .rgba8Unorm_srgb && usage.contains(.shaderWrite) || usage.contains(.renderTarget) {
             descriptor.pixelFormat = .rgba8Unorm
+        } else if pixelFormat == .bgra8Unorm_srgb && usage.contains(.shaderWrite) || usage.contains(.renderTarget)  {
+            descriptor.pixelFormat = .bgra8Unorm
         } else {
             descriptor.pixelFormat = pixelFormat
         }

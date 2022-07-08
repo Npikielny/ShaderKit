@@ -41,6 +41,15 @@ public class Buffer<Encoder: MTLCommandEncoder> {
         case constructor(ArrayBuffer<Encoder>)
         case bytes(Bytes<Encoder>)
     }
+    
+    func copy(device: MTLDevice) -> Buffer<Encoder> {
+        switch representation {
+            case .raw(let buffer):
+                return Buffer<Encoder>(.raw(device.makeBuffer(length: buffer.length, options: .storageModePrivate)!))
+            default:
+                return Buffer<Encoder>(representation)
+        }
+    }
 }
 
 extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {

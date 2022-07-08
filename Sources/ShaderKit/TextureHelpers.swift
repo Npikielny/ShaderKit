@@ -52,7 +52,13 @@ extension Texture {
         usage: MTLTextureUsage
     ) -> Texture? {
         let descriptor = MTLTextureDescriptor()
-        descriptor.pixelFormat = pixelFormat
+        
+        if pixelFormat == .rgba8Unorm_srgb && usage.contains(.shaderWrite) || usage.contains(.renderTarget) {
+            descriptor.pixelFormat = .rgba8Unorm
+        } else {
+            descriptor.pixelFormat = pixelFormat
+        }
+        
         descriptor.width = width
         descriptor.height = height
         descriptor.storageMode = storageMode
@@ -60,39 +66,21 @@ extension Texture {
         return device.makeTexture(descriptor: descriptor).wrap()
     }
     
-    public static func newTexture(
+    public func emptyCopy(
         device: MTLDevice,
-        texture: Texture,
         pixelFormat: MTLPixelFormat? = nil,
-        storageMode: MTLStorageMode,
-        usage: MTLTextureUsage
+        storageMode: MTLStorageMode? = nil,
+        usage: MTLTextureUsage? = nil
     ) -> Texture? {
-        let descriptor = MTLTextureDescriptor()
-        let texture = texture.unwrap(device: device)
-        if let pixelFormat = pixelFormat {
-            descriptor.pixelFormat = pixelFormat
-        } else {
-            descriptor.pixelFormat = texture.pixelFormat
-        }
-        descriptor.width = texture.width
-        descriptor.height = texture.height
-        descriptor.storageMode = storageMode
-        descriptor.usage = usage
-        return device.makeTexture(descriptor: descriptor).wrap()
-    }
-    
-    public static func newTexture(
-        device: MTLDevice,
-        texture: MTLTexture,
-        storageMode: MTLStorageMode,
-        usage: MTLTextureUsage
-    ) -> Texture? {
-        let descriptor = MTLTextureDescriptor()
-        descriptor.pixelFormat = texture.pixelFormat
-        descriptor.width = texture.width
-        descriptor.height = texture.height
-        descriptor.storageMode = storageMode
-        descriptor.usage = usage
-        return device.makeTexture(descriptor: descriptor).wrap()
+        let texture = unwrap(device: device)
+        
+        return Texture.newTexture(
+            device: device,
+            pixelFormat: pixelFormat ?? texture.pixelFormat,
+            width: texture.width,
+            height: texture.height,
+            storageMode: storageMode ?? texture.storageMode,
+            usage: usage ?? texture.usage
+        )
     }
 }

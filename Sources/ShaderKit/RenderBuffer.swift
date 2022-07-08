@@ -32,64 +32,24 @@ public class RenderBuffer: RenderOperation {
 extension RenderBuffer {
     @resultBuilder
     public struct RenderBufferBuilder {
-        public static func buildBlock(_ components: SKConstructor...) -> RenderBuffer {
-            .constructors(components)
+        public static func buildBlock(_ components: RenderCommandBufferConstructor...) -> RenderBuffer {
+            components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [SKConstructor]) -> RenderBuffer {
-            .constructors(components)
+        public static func buildArray(_ components: [RenderCommandBufferConstructor]) -> RenderBuffer {
+            components.map { $00.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: SKConstructor?) -> RenderBuffer {
+        public static func buildOptional(_ component: RenderCommandBufferConstructor?) -> RenderBuffer {
             if let component = component {
-                return .constructors([component])
+                return component.construct()
             } else {
                 return .empty
             }
         }
         
-        public static func buildEither(first component: SKConstructor) -> RenderBuffer {
-            .constructors([component])
-        }
-        
-        public static func buildBlock(_ components: SKShader...) -> RenderBuffer {
-            .shaders(components)
-        }
-        
-        public static func buildArray(_ components: [SKShader]) -> RenderBuffer {
-            .shaders(components)
-        }
-        
-        public static func buildOptional(_ component: SKShader?) -> RenderBuffer {
-            if let component = component {
-                return .shaders([component])
-            } else {
-                return .empty
-            }
-        }
-        
-        public static func buildEither(first component: SKShader) -> RenderBuffer {
-            .shaders([component])
-        }
-        
-        public static func buildBlock(_ components: RenderBuffer...) -> RenderBuffer {
-            components.reduce(.empty, +)
-        }
-        
-        public static func buildArray(_ components: [RenderBuffer]) -> RenderBuffer {
-            components.reduce(.empty, +)
-        }
-        
-        public static func buildOptional(_ component: RenderBuffer?) -> RenderBuffer {
-            if let component = component {
-                return component
-            } else {
-                return .empty
-            }
-        }
-        
-        public static func buildEither(first component: RenderBuffer) -> RenderBuffer {
-            component
+        public static func buildEither(first component: RenderCommandBufferConstructor) -> RenderBuffer {
+            component.construct()
         }
     }
 }

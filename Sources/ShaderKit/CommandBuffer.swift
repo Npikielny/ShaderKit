@@ -22,70 +22,30 @@ public class CommandBuffer: Operation {
 extension CommandBuffer {
     @resultBuilder
     public struct CommandBufferBuilder {
-        public static func buildBlock(_ components: SKConstructor...) -> CommandBuffer {
-            .constructors(components)
+        public static func buildBlock(_ components: CommandBufferConstructor...) -> CommandBuffer {
+            components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [SKConstructor]) -> CommandBuffer {
-            .constructors(components)
+        public static func buildArray(_ components: [CommandBufferConstructor]) -> CommandBuffer {
+            components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: SKConstructor?) -> CommandBuffer {
+        public static func buildOptional(_ component: CommandBufferConstructor?) -> CommandBuffer {
             if let component = component {
-                return .constructors([component])
+                return component.construct()
             } else {
                 return .empty
             }
         }
         
-        public static func buildEither(first component: SKConstructor) -> CommandBuffer {
-            .constructors([component])
-        }
-        
-        public static func buildBlock(_ components: SKShader...) -> CommandBuffer {
-            .shaders(components)
-        }
-        
-        public static func buildArray(_ components: [SKShader]) -> CommandBuffer {
-            .shaders(components)
-        }
-        
-        public static func buildOptional(_ component: SKShader?) -> CommandBuffer {
-            if let component = component {
-                return .shaders([component])
-            } else {
-                return .empty
-            }
-        }
-        
-        public static func buildEither(first component: SKShader) -> CommandBuffer {
-            .shaders([component])
-        }
-        
-        public static func buildBlock(_ components: CommandBuffer...) -> CommandBuffer {
-            components.reduce(.empty, +)
-        }
-        
-        public static func buildArray(_ components: [CommandBuffer]) -> CommandBuffer {
-            components.reduce(.empty, +)
-        }
-        
-        public static func buildOptional(_ component: CommandBuffer?) -> CommandBuffer {
-            if let component = component {
-                return component
-            } else {
-                return .empty
-            }
-        }
-        
-        public static func buildEither(first component: CommandBuffer) -> CommandBuffer {
-            component
+        public static func buildEither(first component: CommandBufferConstructor) -> CommandBuffer {
+            component.construct()
         }
     }
 }
 
 extension CommandBuffer {
-    public indirect enum CommandBuffer {
+    public indirect enum CommandBuffer: CommandBufferConstructor {
         case constructors([SKConstructor])
         case shaders([SKShader])
         case mix(CommandBuffer, CommandBuffer)
@@ -137,6 +97,10 @@ extension CommandBuffer {
                 default:
                     return .mix(lhs, rhs)
             }
+        }
+        
+        public func construct() -> Self {
+            self
         }
     }
 }

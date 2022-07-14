@@ -19,6 +19,7 @@ extension Optional where Wrapped == MTLTexture {
 
 extension Texture {
     public static func newTexture(
+        name: String? = nil,
         pixelFormat: MTLPixelFormat,
         width: Int,
         height: Int,
@@ -28,6 +29,7 @@ extension Texture {
         renderTarget: Bool = false
     ) -> TextureConstructor {
         newTexture(
+            name: name,
             pixelFormat: pixelFormat,
             width: width,
             height: height,
@@ -42,13 +44,14 @@ extension Texture {
     }
     
     public static func newTexture(
+        name: String? = nil,
         pixelFormat: MTLPixelFormat,
         width: Int,
         height: Int,
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
     ) -> TextureConstructor {
-        OptionalTextureFuture { device -> MTLTexture? in
+        OptionalTextureFuture(name) { device -> MTLTexture? in
             let descriptor = MTLTextureDescriptor()
             
             if pixelFormat == .rgba8Unorm_srgb && usage.contains(.shaderWrite) || usage.contains(.renderTarget) {
@@ -68,15 +71,18 @@ extension Texture {
     }
     
     public func emptyCopy(
+        name: String? = nil,
         pixelFormat: MTLPixelFormat? = nil,
         storageMode: MTLStorageMode? = nil,
         usage: MTLTextureUsage? = nil
     ) -> TextureConstructor {
         // FIXME: Cycle
-        TextureFuture { [self] device -> TextureConstructor in
+        let name = name ?? "Copy of \(self.description ?? "unnamed")"
+        return TextureFuture(name) { [self] device -> TextureConstructor in
             let texture = unwrap(device: device)
             
             return Texture.newTexture(
+                name: name,
                 pixelFormat: pixelFormat ?? texture.pixelFormat,
                 width: texture.width,
                 height: texture.height,

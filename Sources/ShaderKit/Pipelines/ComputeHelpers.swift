@@ -7,9 +7,32 @@
 
 import Metal
 
-public protocol ComputePass: SKShader {
-    var pipelines: [ComputePipeline] { get }
-    var size: (MTLDevice) -> SIMD2<Int> { get }
+struct ComputePass: SKShader {
+    public var pipelines: [ComputePipeline]
+    public var size: (MTLDevice) -> SIMD2<Int>
+    
+    init(texture: Texture, pipelines: [ComputePipeline]) {
+        size = { device in
+            let texture = texture.unwrap(device: device)
+            return SIMD2(texture.width, texture.height)
+        }
+        self.pipelines = pipelines
+    }
+    
+    init(buffer: Buffer<MTLComputeCommandEncoder>, width: Int, pipelines: [ComputePipeline]) {
+        size = { device in
+            SIMD2(
+                min(width, buffer.count),
+                max((buffer.count + width - 1) / width, 1)
+            )
+        }
+        self.pipelines = pipelines
+    }
+    
+    init(size: SIMD2<Int>, pipelines: [ComputePipeline]) {
+        self.size = { _ in size }
+        self.pipelines = pipelines
+    }
 }
 
 extension ComputePass {
@@ -23,19 +46,6 @@ extension ComputePass {
                 depth: 1
             )
             pipelines[i].encode(commandBuffer: commandBuffer)
-        }
-    }
-}
-
-public protocol TexturePass: ComputePass {
-    var dispatchTexture: TextureConstructor { get }
-}
-
-extension TexturePass {
-    public var size: (MTLDevice) -> SIMD2<Int> {
-        { device in
-            let texture = dispatchTexture.construct().unwrap(device: device)
-            return SIMD2(texture.width, texture.height)
         }
     }
 }

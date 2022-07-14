@@ -7,24 +7,8 @@
 
 import MetalKit
 
-public struct LoadableTexture {
-    public init(path: String) {
-        self.path = path
-    }
-    
-    var path: String
-    
-    public func texture(device: MTLDevice) -> MTLTexture {
-        let textureLoader = MTKTextureLoader(device: device)
-        do {
-            return try textureLoader.newTexture(URL: URL(fileURLWithPath: path))
-        } catch {
-            fatalError("Unable to create texture at \(path) because \n \(error.localizedDescription)")
-        }
-    }
-}
-
 public protocol TextureConstructor {
+    var description: String? { get }
     func enumerate() -> Texture.Representation
 }
 
@@ -35,6 +19,7 @@ extension TextureConstructor {
 }
 
 public class Texture: TextureConstructor {
+    public var description: String?
     var representation: Representation
     
     public init(_ constructor: TextureConstructor) {
@@ -54,20 +39,42 @@ extension Texture {
     public enum Representation: TextureConstructor {
         case raw(MTLTexture)
         case loadable(LoadableTexture)
+        case future(TextureFuture)
+        case optionalFuture(OptionalTextureFuture)
         
         public static func path(_ path: String) -> Self {
             .loadable(LoadableTexture(path: path))
         }
         
         public func enumerate() -> Representation { self }
+        
+        public var description: String? {
+            switch self {
+                case .raw(let rep): return rep.description
+                case .loadable(let rep): return rep.description
+                case .future(let rep): return rep.description
+                case .optionalFuture(let rep): return rep.description
+            }
+        }
+        
     }
     
     public func unwrap(device: MTLDevice) -> MTLTexture {
         switch representation {
-            case .raw(let texture):
+            case let .raw(texture):
                 return texture
-            case .loadable(let loadableTexture):
+            case let .loadable(loadableTexture):
                 let texture = loadableTexture.texture(device: device)
+                representation = .raw(texture)
+                return texture
+            case let .future(future):
+                let texture = future.create(device)
+                representation = .raw(texture)
+                return texture
+            case let .optionalFuture(future):
+                guard let texture = future.create(device) else {
+                    fatalError("Failed unwrapping \(future.description)")
+                }
                 representation = .raw(texture)
                 return texture
         }
@@ -87,6 +94,8 @@ extension Texture {
 }
 
 extension String: TextureConstructor {
+    public var description: String? { self }
+    
     public func enumerate() -> Texture.Representation {
         .loadable(LoadableTexture(path: self))
     }
@@ -98,14 +107,8 @@ extension Array where Element == Texture {
         encoder: MTLComputeCommandEncoder
     ) {
         for (index, texture) in self.enumerated() {
-            switch texture.representation {
-                case let .raw(texture):
-                    encoder.setTexture(texture, index: index)
-                case let .loadable(loadable):
-                    let texture = loadable.texture(device: device)
-                    encoder.setTexture(texture, index: index)
-                    self[index].representation = .raw(texture)
-            }
+            let texture = texture.unwrap(device: device)
+            encoder.setTexture(texture, index: index)
         }
     }
     
@@ -113,16 +116,10 @@ extension Array where Element == Texture {
         device: MTLDevice,
         encoder: MTLRenderCommandEncoder,
         function: RenderFunction
-    ) {
+    ) { 
         for (index, texture) in self.enumerated() {
-            switch texture.representation {
-                case let .raw(texture):
-                    encoder.setTexture(texture, index: index, function: function)
-                case let .loadable(loadable):
-                    let texture = loadable.texture(device: device)
-                    encoder.setTexture(texture, index: index, function: function)
-                    self[index].representation = .raw(texture)
-            }
+            let texture = texture.unwrap(device: device)
+            encoder.setTexture(texture, index: index, function: function)
         }
     }
 }

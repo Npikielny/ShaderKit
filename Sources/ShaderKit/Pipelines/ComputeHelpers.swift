@@ -28,13 +28,13 @@ extension ComputePass {
 }
 
 public protocol TexturePass: ComputePass {
-    var dispatchTexture: Texture { get }
+    var dispatchTexture: TextureConstructor { get }
 }
 
 extension TexturePass {
     public var size: (MTLDevice) -> SIMD2<Int> {
         { device in
-            let texture = dispatchTexture.unwrap(device: device)
+            let texture = dispatchTexture.construct().unwrap(device: device)
             return SIMD2(texture.width, texture.height)
         }
     }

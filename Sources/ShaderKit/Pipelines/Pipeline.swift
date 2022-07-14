@@ -7,39 +7,6 @@
 
 import MetalKit
 
-public struct StaticComputeShader: SKConstructor {
-    public init(name: String, textures: [TextureConstructor] = [TextureConstructor](), buffers: [Buffer<MTLComputeCommandEncoder>] = [Buffer<MTLComputeCommandEncoder>](), threadGroupSize: MTLSize, threadGroups: MTLSize) {
-        self.name = name
-        self.textures = textures
-        self.buffers = buffers
-        self.threadGroupSize = threadGroupSize
-        self.threadGroups = threadGroups
-    }
-    
-    public let name: String
-    public var textures = [TextureConstructor]()
-    public var buffers = [Buffer<MTLComputeCommandEncoder>]()
-    
-    public let threadGroupSize: MTLSize
-    public var threadGroups: MTLSize
-    
-    public func initialize(device: MTLDevice) throws -> ComputePipeline {
-        try ComputePipeline(
-            device: device,
-            name: name,
-            textures: textures,
-            buffers: buffers,
-            threadGroupSize: threadGroupSize,
-            threadGroups: threadGroups
-        )
-    }
-    
-    public func initialize(device: MTLDevice) throws -> SKShader {
-        let s: ComputePipeline = try initialize(device: device)
-        return s
-    }
-}
-
 public class ComputePipeline: SKShader {
     public let pipeline: MTLComputePipelineState
     public var textures: [Texture]

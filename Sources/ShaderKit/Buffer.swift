@@ -42,7 +42,7 @@ public class Buffer<Encoder: MTLCommandEncoder> {
         case bytes(Bytes<Encoder>)
     }
     
-    func copy(device: MTLDevice) -> Buffer<Encoder> {
+    public func copy(device: MTLDevice) -> Buffer<Encoder> {
         switch representation {
             case .raw(let buffer):
                 return Buffer<Encoder>(.raw(device.makeBuffer(length: buffer.length, options: .storageModePrivate)!))
@@ -118,6 +118,12 @@ extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEnco
         }
     }
     
+    public init(_ array: [Int]) {
+        bytes = { encoder, index in
+            encoder.setBytes(array.map { Int32($0) }, length: MemoryLayout<Int32>.stride * array.count, index: index)
+        }
+    }
+    
     public init<T>(_ bytes: T) {
         self.bytes = { encoder, index in
             encoder.setBytes([bytes], length: MemoryLayout<T>.stride, index: index)
@@ -181,6 +187,12 @@ extension Array: ComputeBufferConstructor {
 extension Int32: ComputeBufferConstructor {
     public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
         .bytes(.init(self))
+    }
+}
+
+extension Int: ComputeBufferConstructor {
+    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
+        .bytes(.init(Int32(self)))
     }
 }
 

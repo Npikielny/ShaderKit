@@ -17,7 +17,7 @@ extension Optional where Wrapped == MTLTexture {
     }
 }
 
-extension Texture {
+extension TextureConstructor {
     public static func newTexture(
         name: String? = nil,
         pixelFormat: MTLPixelFormat,
@@ -79,7 +79,7 @@ extension Texture {
         // FIXME: Cycle
         let name = name ?? "Copy of \(self.description ?? "unnamed")"
         return TextureFuture(name) { [self] device -> TextureConstructor in
-            let texture = unwrap(device: device)
+            let texture = construct().unwrap(device: device)
             
             return Texture.newTexture(
                 name: name,

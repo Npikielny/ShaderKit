@@ -73,7 +73,7 @@ extension Texture {
                 return texture
             case let .optionalFuture(future):
                 guard let texture = future.create(device) else {
-                    fatalError("Failed unwrapping \(future.description)")
+                    fatalError("Failed unwrapping \(future.description ?? "unnamed texture")")
                 }
                 representation = .raw(texture)
                 return texture

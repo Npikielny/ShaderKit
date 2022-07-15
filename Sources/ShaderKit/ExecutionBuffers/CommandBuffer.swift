@@ -110,7 +110,7 @@ extension MTLCommandQueue {
         try await commandBuffer.execution.execute(commandQueue: self)
     }
     
-    public func execute(@CommandBuffer.CommandBufferBuilder commandBuffer: () -> CommandBuffer) async throws {
-        try await commandBuffer().execution.execute(commandQueue: self)
+    public func execute(@CommandBuffer.CommandBufferBuilder commandBuffer: () -> CommandBuffer.CommandBuffer) async throws {
+        try await execute(commandBuffer: CommandBuffer(commandBuffer: commandBuffer))
     }
 }

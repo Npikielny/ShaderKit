@@ -73,11 +73,11 @@ public class TexturePointer<T: SIMDScalar> {
 
 extension MTLTexture {
     // source: https://stackoverflow.com/a/63035123
-    func getPixels<T>(_ region: MTLRegion? = nil, mipmapLevel: Int = 0) -> RawPointer<T> {
+    func getPixels<T>(_ region: MTLRegion? = nil, mipmapLevel: Int = 0, components: Int) -> RawPointer<T> {
         let fromRegion  = region ?? MTLRegionMake2D(0, 0, self.width, self.height)
         let width       = fromRegion.size.width
         let height      = fromRegion.size.height
-        let bytesPerRow = MemoryLayout<T>.stride * width
+        let bytesPerRow = MemoryLayout<T>.stride * width * components
         let data        = UnsafeMutablePointer<T>.allocate(capacity: bytesPerRow * height)
 
         getBytes(data, bytesPerRow: bytesPerRow, from: fromRegion, mipmapLevel: mipmapLevel)
@@ -86,9 +86,15 @@ extension MTLTexture {
 }
 
 extension Texture {
-    func bytes<T: SIMDScalar>(device: MTLDevice, type: T.Type, components: Int, region: MTLRegion?, mipMapLevel: Int) -> TexturePointer<T> {
+    public func bytes<T: SIMDScalar>(
+        device: MTLDevice,
+        type: T.Type,
+        components: Int,
+        region: MTLRegion?,
+        mipMapLevel: Int
+    ) -> TexturePointer<T> {
         let texture = unwrap(device: device)
-        let pointer: RawPointer<T> = texture.getPixels(region, mipmapLevel: mipMapLevel)
+        let pointer: RawPointer<T> = texture.getPixels(region, mipmapLevel: mipMapLevel, components: components)
         return TexturePointer<T>(
             pointer,
             components: components,

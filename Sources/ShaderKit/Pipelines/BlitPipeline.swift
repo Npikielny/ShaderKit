@@ -25,7 +25,7 @@ public struct BlitPipeline: SKShader {
     }
     
     let representation: Representation
-    init(_ representation: Representation) {
+    public init(_ representation: Representation) {
         self.representation = representation
     }
     

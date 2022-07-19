@@ -17,13 +17,13 @@ public enum Configuration {
 }
 #if os(macOS)
 public struct MTKViewRepresentable: NSViewRepresentable {
-    var view: MTKView
-    var delegate: MTKViewDelegate? {
+    public var view: MTKView
+    public var delegate: MTKViewDelegate? {
         get { view.delegate }
         set { view.delegate = newValue }
     }
     
-    var device: MTLDevice? {
+    public var device: MTLDevice? {
         get { view.device }
         set { view.device = newValue }
     }
@@ -36,13 +36,13 @@ public struct MTKViewRepresentable: NSViewRepresentable {
 }
 #elseif os(iOS)
 public struct MTKViewRepresentable: NSViewRepresentable {
-    var view: MTKView
-    var delegate: MTKViewDelegate? {
+    public var view: MTKView
+    public var delegate: MTKViewDelegate? {
         get { view.delegate }
         set { view.delegate = newValue }
     }
     
-    var device: MTLDevice? {
+    public var device: MTLDevice? {
         get { view.device }
         set { view.device = newValue }
     }

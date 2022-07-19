@@ -19,8 +19,8 @@ public class ComputePipeline: SKShader {
     public init(
         device: MTLDevice,
         name: String,
-        textures: [TextureConstructor],
-        buffers: [Buffer<MTLComputeCommandEncoder>],
+        textures: [TextureConstructor] = [],
+        buffers: [Buffer<MTLComputeCommandEncoder>] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize
     ) throws {
@@ -71,10 +71,10 @@ public class RenderPipeline: SKShader {
         pipelineConstructor: RenderPipelineDescriptorConstructor,
         fragment: String,
         vertex: String,
-        vertexTextures: [TextureConstructor],
-        fragmentTextures: [TextureConstructor],
-        vertexBuffers: [Buffer<MTLRenderCommandEncoder>],
-        fragmentBuffers: [Buffer<MTLRenderCommandEncoder>],
+        vertexTextures: [TextureConstructor] = [],
+        fragmentTextures: [TextureConstructor] = [],
+        vertexBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
+        fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor
     ) throws {
         self.device = device

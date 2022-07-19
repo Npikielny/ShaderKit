@@ -15,7 +15,7 @@ public class RenderBuffer: RenderOperation {
         self.execution = renderBuffer()
     }
     
-    func presents(_ b: Bool) {
+    public func presents(_ b: Bool) {
         presents = b
     }
     

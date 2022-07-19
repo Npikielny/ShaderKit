@@ -19,8 +19,9 @@ public enum Configuration {
 public struct MTKViewRepresentable: NSViewRepresentable {
     public var view: MTKView
     public var delegate: MTKViewDelegate? {
-        get { view.delegate }
-        set { view.delegate = newValue }
+        didSet {
+            view.delegate = delegate
+        }
     }
     
     public var device: MTLDevice? {
@@ -172,7 +173,7 @@ extension MTKViewRepresentable {
         configuration: Configuration? = nil
     ) {
         self.view = view
-        self.delegate = ShaderDelegateInterface(operation: operation, device: device)
+        delegate = ShaderDelegateInterface(operation: operation, device: device)
         self.device = device
         
         if let configuration = configuration,
@@ -188,7 +189,7 @@ extension MTKViewRepresentable {
         configuration: Configuration? = nil
     ) {
         self.view = MTKView(frame: frame)
-        self.delegate = ShaderDelegateInterface(operation: operation, device: device)
+        delegate = ShaderDelegateInterface(operation: operation, device: device)
         self.device = device
         
         if let configuration = configuration,

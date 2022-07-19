@@ -10,219 +10,178 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-//
-//
-//public protocol MTKViewRepresentableDelegate  {
-//    func updateMTKView(_ mtkView: MTKView, context: MTKViewRepresentable.Context)
-//}
-//
-//#if os(macOS)
-//public struct MTKViewRepresentable: NSViewRepresentable {
-//    public var view: MTKView
-//    public var viewHandler: MTKViewRepresentableDelegate? = nil
-//    public var configuration: RunConfiguration = .rate(60)  {
-//        didSet {
-//            activate()
-//        }
-//    }
-//    
-//    private var timer: Timer? = nil
-//    
-//    public init(
-//        view: MTKView,
-//        viewHandler: MTKViewRepresentableDelegate? = nil,
-//        configuration: RunConfiguration = .rate(60),
-//        delegate: MTKViewDelegate? = nil
-//    ) {
-//        self.view = view
-//        self.viewHandler = viewHandler
-//        configuration.validate()
-//        self.configuration = configuration
-//        
-//        self.delegate = delegate
-//        activate()
-//    }
-//    
-//    public init(
-//        view: MTKView,
-//        viewHandler: MTKViewRepresentableDelegate? = nil,
-//        configuration: RunConfiguration = .rate(60),
-//        shader: SKShader
-//    ) {
-//        self.view = view
-//        self.viewHandler = viewHandler
-//        configuration.validate()
-//        self.configuration = configuration
-//        
-//        self.delegate = ShaderDelegate(shader: shader)
-//        activate()
-//    }
-//    
-//    public func makeNSView(context: Context) -> MTKView {
-//        view
-//    }
-//    
-//    public func updateNSView(_ nsView: MTKView, context: Context) {
-//        viewHandler?.updateMTKView(nsView, context: context)
-//    }
-//}
-//#else
-//public struct MTKViewRepresentable: UIViewRepresentable {
-//    public var view: MTKView
-//    public var viewHandler: MTKViewRepresentableDelegate? = nil
-//    public var configuration: RunConfiguration = .rate(60) {
-//        didSet {
-//            activate()
-//        }
-//    }
-//    
-//    private var timer: Timer? = nil
-//    
-//    public init(
-//        view: MTKView,
-//        viewHandler: MTKViewRepresentableDelegate? = nil,
-//        configuration: RunConfiguration = .rate(60),
-//        delegate: MTKViewDelegate? = nil
-//    ) {
-//        self.view = view
-//        self.viewHandler = viewHandler
-//        configuration.validate()
-//        self.configuration = configuration
-//        self.delegate = delegate
-//        
-//        activate()
-//    }
-//    
-//    public init(
-//        view: MTKView,
-//        viewHandler: MTKViewRepresentableDelegate? = nil,
-//        configuration: RunConfiguration = .rate(60),
-//        shader: SKUnit
-//    ) {
-//        self.view = view
-//        self.viewHandler = viewHandler
-//        configuration.validate()
-//        self.configuration = configuration
-//        
-//        self.delegate = ShaderDelegate(shader: shader)
-//        activate()
-//    }
-//    
-//    func makeUIView(context: Context) -> MTKView {
-//        view
-//    }
-//    
-//    func updateUIView(_ uiView: MTKView, context: Context) {
-//        viewHandler?.updateMTKView(view, context: context)
-//    }
-//}
-//#endif
-//
-//extension MTKViewRepresentable {
-//    public enum RunConfiguration {
-//        case timer(Timer)
-//        case rate(_ fps: Int)
-//        case none
-//        
-//        func validate() {
-//            switch self {
-//                case .rate(let fps) where fps < 0:
-//                    fatalError("FPS must be in range 0...120, but got \(fps).")
-//                case .rate(let fps) where fps > 120:
-//                    print("FPS must be in range 0...120, but got \(fps). Will attempt to continue.")
-//                default: return
-//            }
-//        }
-//    }
-//    
-//    public var device: MTLDevice? {
-//        get { view.device }
-//        set { view.device = newValue }
-//    }
-//    
-//    public var delegate: MTKViewDelegate? {
-//        get { view.delegate }
-//        set { view.delegate = newValue }
-//    }
-//    
-//    public init?() {
-//        view = MTKView()
-//        view.device = MTLCreateSystemDefaultDevice()
-//        configuration = .none
-//        
-//        activate()
-//    }
-//    
-//    public init(
-//        view: MTKView? = nil,
-//        device: MTLDevice? = MTLCreateSystemDefaultDevice(),
-//        viewHandler: MTKViewRepresentableDelegate? = nil,
-//        delegate: MTKViewDelegate? = nil,
-//        configuration: RunConfiguration = .none
-//    ) {
-//        if let view = view {
-//            self.view = view
-//        } else {
-//            self.view = MTKView()
-//        }
-//        
-//        self.viewHandler = viewHandler
-//        self.configuration = configuration
-//        self.device = device
-//        self.delegate = delegate
-//        
-//        activate()
-//    }
-//    
-//    mutating private func activate() {
-//        timer?.invalidate()
-//        switch configuration {
-//            case .timer(let timer):
-//                self.timer = timer
-//            case .rate(let fps):
-//                self.timer = Timer.scheduledTimer(withTimeInterval: 1 / Double(fps), repeats: true) { [self] _ in
-//                    delegate?.draw(in: view)
-//                }
-//            case .none:
-//                timer = nil
-//        }
-//    }
-//}
-//
-//extension MTKViewRepresentable {
-//    class ShaderDelegate: NSObject, MTKViewDelegate {
-//        var operation: Operation
-//        
-//        var device = MTLCreateSystemDefaultDevice()
-//        lazy var commandQueue = device?.makeCommandQueue()
-//        
-//        var semaphore = DispatchSemaphore(value: 1)
-//        
-//        init(operation: Operation) {
-//            self.operation = operation
-//            try! self.operation.initialize(device: device, library: nil)
-//        }
-//        
-//        func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-//            
-//        }
-//        
-//        func draw(in view: MTKView) {
-//            guard //let drawable = view.currentDrawable,
-//                  let renderPassDescriptor = view.currentRenderPassDescriptor,
-//                  let commandBuffer = commandQueue?.makeCommandBuffer() else {
-//                return
-//            }
-//            
-//            semaphore.wait()
-//            commandBuffer.addCompletedHandler { [weak self] _ in
-//                self?.semaphore.signal()
-//            }
-//            
-//            operation.encode(commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
-//            
-//            commandBuffer.commit()
-//            
-//        }
-//    }
-//}
+public enum Configuration {
+    case rate(_ fps: Int)
+    case timer(Timer)
+    case none
+}
+#if os(macOS)
+public struct MTKViewRepresentable: NSViewRepresentable {
+    var view: MTKView
+    var delegate: MTKViewDelegate? {
+        get { view.delegate }
+        set { view.delegate = newValue }
+    }
+    
+    var device: MTLDevice? {
+        get { view.device }
+        set { view.device = newValue }
+    }
+    
+    public func makeNSView(context: Context) -> MTKView {
+        view
+    }
+    
+    public func updateNSView(_ nsView: MTKView, context: Context) {}
+}
+#elseif os(iOS)
+public struct MTKViewRepresentable: NSViewRepresentable {
+    var view: MTKView
+    var delegate: MTKViewDelegate? {
+        get { view.delegate }
+        set { view.delegate = newValue }
+    }
+    
+    var device: MTLDevice? {
+        get { view.device }
+        set { view.device = newValue }
+    }
+    
+    public func makeNSView(context: Context) -> MTKView {
+        view
+    }
+    
+    public func updateNSView(_ nsView: MTKView, context: Context) {}
+}
+#endif
+
+extension MTKViewRepresentable {
+    public func draw() {
+        delegate?.draw(in: view)
+    }
+    
+    public func getConfiguration(_ configuration: Configuration) -> Configuration {
+        switch configuration {
+            case .rate(let rate):
+                let timer = Timer.scheduledTimer(withTimeInterval: 1 / Double(rate), repeats: true) { _ in
+                    self.draw()
+                }
+                return .timer(timer)
+            default:
+                return configuration
+        }
+    }
+    
+    public init(
+        view: MTKView,
+        delegate: MTKViewDelegate? = nil,
+        device: MTLDevice? = nil,
+        configuration: Configuration? = nil
+    ) {
+        self.view = view
+        self.delegate = delegate
+        self.device = device
+        
+        if let configuration = configuration,
+           case let .timer(timer) = getConfiguration(configuration) {
+            timer.fire()
+        }
+    }
+    
+    public init(
+        frame: NSRect,
+        delegate: MTKViewDelegate? = nil,
+        device: MTLDevice? = nil,
+        configuration: Configuration? = nil
+    ) {
+        self.view = MTKView(frame: frame)
+        self.delegate = delegate
+        self.device = device
+        
+        if let configuration = configuration,
+           case let .timer(timer) = getConfiguration(configuration) {
+            timer.fire()
+        }
+    }
+}
+
+// MARK: - ShaderKit Interfacing
+public protocol ShaderDelegate: AnyObject {
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize)
+}
+
+extension MTKViewRepresentable {
+    public class ShaderDelegateInterface: NSObject, MTKViewDelegate {
+        public var operation: RenderOperation
+        public weak var delegate: ShaderDelegate?
+        public var device: MTLDevice? {
+            didSet {
+                setCommandQueue(device: device)
+            }
+        }
+        
+        var commandQueue: MTLCommandQueue?
+        
+        public init(operation: RenderOperation, device: MTLDevice?) {
+            self.operation = operation
+            self.device = device
+            super.init()
+            setCommandQueue(device: device)
+        }
+        
+        func setCommandQueue(device: MTLDevice?) {
+            guard let device = device else { commandQueue = nil; return }
+            commandQueue = device.makeCommandQueue()
+        }
+        
+        public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+            delegate?.mtkView(view, drawableSizeWillChange: size)
+        }
+        
+        public func draw(in view: MTKView) {
+            guard let commandQueue = commandQueue,
+                  let drawable = view.currentDrawable,
+                  let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
+            
+            Task {
+                try await operation.execute(
+                    commandQueue: commandQueue,
+                    drawable: drawable,
+                    renderDescriptor: renderPassDescriptor
+                )
+            }
+        }
+    }
+    
+    public init(
+        view: MTKView,
+        operation: RenderOperation,
+        device: MTLDevice? = nil,
+        configuration: Configuration? = nil
+    ) {
+        self.view = view
+        self.delegate = ShaderDelegateInterface(operation: operation, device: device)
+        self.device = device
+        
+        if let configuration = configuration,
+           case let .timer(timer) = getConfiguration(configuration) {
+            timer.fire()
+        }
+    }
+    
+    public init(
+        frame: NSRect,
+        operation: RenderOperation,
+        device: MTLDevice? = nil,
+        configuration: Configuration? = nil
+    ) {
+        self.view = MTKView(frame: frame)
+        self.delegate = ShaderDelegateInterface(operation: operation, device: device)
+        self.device = device
+        
+        if let configuration = configuration,
+           case let .timer(timer) = getConfiguration(configuration) {
+            timer.fire()
+        }
+    }
+}

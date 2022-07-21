@@ -11,7 +11,8 @@ public class RenderBuffer: RenderOperation {
     var execution: RenderBuffer
     var presents = false
     
-    public init(@RenderBufferBuilder renderBuffer: () -> RenderBuffer) {
+    public init(presents: Bool = false, @RenderBufferBuilder renderBuffer: () -> RenderBuffer) {
+        self.presents = presents
         self.execution = renderBuffer()
     }
     

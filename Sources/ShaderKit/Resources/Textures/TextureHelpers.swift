@@ -94,12 +94,9 @@ extension TextureConstructor {
 }
 
 extension MTLTextureUsage {
-    var compute: Self {
-        [.shaderRead, .shaderWrite]
-    }
-    var readWrite: Self { compute }
+    public var compute: Self { [.shaderRead, .shaderWrite] }
     
-    var all: Self {
-        [compute, .renderTarget]
-    }
+    public var readWrite: Self { compute }
+    
+    public var all: Self { [compute, .renderTarget] }
 }

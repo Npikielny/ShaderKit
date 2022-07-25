@@ -11,7 +11,7 @@ public struct ComputePass: SKShader {
     public var pipelines: [ComputePipeline]
     public var size: (MTLDevice) -> SIMD2<Int>
     
-    init(texture: Texture, pipelines: [ComputePipeline]) {
+    public init(texture: Texture, pipelines: [ComputePipeline]) {
         size = { device in
             let texture = texture.unwrap(device: device)
             return SIMD2(texture.width, texture.height)
@@ -19,7 +19,7 @@ public struct ComputePass: SKShader {
         self.pipelines = pipelines
     }
     
-    init(buffer: Buffer<MTLComputeCommandEncoder>, width: Int, pipelines: [ComputePipeline]) {
+    public init(buffer: Buffer<MTLComputeCommandEncoder>, width: Int, pipelines: [ComputePipeline]) {
         size = { device in
             SIMD2(
                 min(width, buffer.count),
@@ -29,7 +29,7 @@ public struct ComputePass: SKShader {
         self.pipelines = pipelines
     }
     
-    init(size: SIMD2<Int>, pipelines: [ComputePipeline]) {
+    public init(size: SIMD2<Int>, pipelines: [ComputePipeline]) {
         self.size = { _ in size }
         self.pipelines = pipelines
     }

@@ -19,13 +19,10 @@ public class RenderPipeline: SKShader {
     public var vertexBuffers: [Buffer<MTLRenderCommandEncoder>]
     public var fragmentBuffers: [Buffer<MTLRenderCommandEncoder>]
     
-    public let device: MTLDevice
-    
-    let renderPassDescriptor: RenderPassDescriptor
+    private var renderPassDescriptor: RenderPassDescriptor
     private var workingDescriptor: MTLRenderPassDescriptor?
     
     public init(
-        device: MTLDevice,
         pipeline: Pipeline,
         vertexTextures: [TextureConstructor] = [],
         fragmentTextures: [TextureConstructor] = [],
@@ -33,8 +30,6 @@ public class RenderPipeline: SKShader {
         fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor
     ) throws {
-        self.device = device
-        
         self.pipeline = pipeline
         
         self.fragmentTextures = fragmentTextures.map { $0.construct() }
@@ -50,7 +45,6 @@ public class RenderPipeline: SKShader {
     }
     
     public convenience init(
-        device: MTLDevice,
         pipelineConstructor: RenderPipelineDescriptorConstructor,
         fragment: String,
         vertex: String,
@@ -61,7 +55,6 @@ public class RenderPipeline: SKShader {
         renderPassDescriptor: RenderPassDescriptorConstructor
     ) throws {
         try self.init(
-            device: device,
             pipeline: .constructors(vertex, fragment, pipelineConstructor),
             vertexTextures: vertexTextures,
             fragmentTextures: fragmentTextures,
@@ -71,11 +64,33 @@ public class RenderPipeline: SKShader {
         )
     }
     
-    func setRenderPassDescriptor(descriptor: MTLRenderPassDescriptor) {
+    public convenience init(
+        inTexture: TextureConstructor,
+        outTexture: TextureConstructor,
+        fragment: String,
+        vertex: String
+    ) throws {
+        let outTexture = outTexture.construct()
+        
+        try self.init(
+            pipeline: .constructors(vertex, fragment, RenderPipelineDescriptor.texture(outTexture)),
+            renderPassDescriptor: RenderPassDescriptor.future({ device in
+                let descriptor = MTLRenderPassDescriptor()
+                descriptor.colorAttachments[0].texture = outTexture.unwrap(device: device)
+                return descriptor
+            })
+        )
+    }
+    
+    func setRenderPassDescriptor(device: MTLDevice, descriptor: MTLRenderPassDescriptor) {
         switch renderPassDescriptor {
             case .drawable:
                 self.workingDescriptor = descriptor
-            case .custom(let renderPassDescriptor):
+            case let .future(future):
+                let descriptor = future(device)
+                self.renderPassDescriptor = .custom(descriptor)
+                self.workingDescriptor = descriptor
+            case let .custom(renderPassDescriptor):
                 self.workingDescriptor = renderPassDescriptor
         }
     }
@@ -96,6 +111,7 @@ Unabled to make render encoder \(pipeline.description)
 """
             )
         }
+        let device = commandBuffer.device
         let pipeline = try! pipeline.unwrap(device: device)
         
         renderEncoder.setRenderPipelineState(pipeline)
@@ -214,6 +230,7 @@ extension Texture: RenderPipelineDescriptorConstructor {
 public enum RenderPassDescriptor: RenderPassDescriptorConstructor {
     case drawable
     case custom(MTLRenderPassDescriptor)
+    case future((MTLDevice) -> MTLRenderPassDescriptor)
     
     public func construct() -> RenderPassDescriptor { self }
 }

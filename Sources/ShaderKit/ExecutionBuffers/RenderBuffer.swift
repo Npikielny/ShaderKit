@@ -87,7 +87,7 @@ extension RenderBuffer {
             if case let .shaders(shaders) = self {
                 for shader in shaders {
                     if let shader = shader as? RenderPipeline {
-                        shader.setRenderPassDescriptor(descriptor: renderDescriptor)
+                        shader.setRenderPassDescriptor(device: device, descriptor: renderDescriptor)
                         shader.encode(commandBuffer: commandBuffer)
                     } else {
                         shader.encode(commandBuffer: commandBuffer)

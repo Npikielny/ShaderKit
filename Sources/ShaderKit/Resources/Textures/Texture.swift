@@ -14,7 +14,8 @@ public protocol TextureConstructor {
 
 extension TextureConstructor {
     public func construct() -> Texture {
-        .init(enumerate())
+        if let self = self as? Texture { return self }
+        return .init(enumerate())
     }
 }
 

@@ -62,7 +62,7 @@ public class RenderPipeline: SKShader {
     ) throws {
         try self.init(
             device: device,
-            pipeline: .constructors(fragment, vertex, pipelineConstructor),
+            pipeline: .constructors(vertex, fragment, pipelineConstructor),
             vertexTextures: vertexTextures,
             fragmentTextures: fragmentTextures,
             vertexBuffers: vertexBuffers,

@@ -74,6 +74,7 @@ public class RenderPipeline: SKShader {
         
         try self.init(
             pipeline: .constructors(vertex, fragment, RenderPipelineDescriptor.texture(outTexture)),
+            fragmentTextures: [inTexture],
             renderPassDescriptor: RenderPassDescriptor.future({ device in
                 let descriptor = MTLRenderPassDescriptor()
                 descriptor.colorAttachments[0].texture = outTexture.unwrap(device: device)
@@ -117,8 +118,8 @@ Unabled to make render encoder \(pipeline.description)
         renderEncoder.setRenderPipelineState(pipeline)
         fragmentTextures.encode(device: device, encoder: renderEncoder, function: .fragment)
         vertexTextures.encode(device: device, encoder: renderEncoder, function: .vertex)
-        fragmentBuffers.encode(device: device, encoder: renderEncoder, renderFunction: .fragment)
-        vertexBuffers.encode(device: device, encoder: renderEncoder, renderFunction: .vertex)
+        fragmentBuffers.encode(device: device, encoder: renderEncoder, function: .fragment)
+        vertexBuffers.encode(device: device, encoder: renderEncoder, function: .vertex)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
     }

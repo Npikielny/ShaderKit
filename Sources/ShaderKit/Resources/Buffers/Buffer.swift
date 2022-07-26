@@ -18,10 +18,6 @@ extension ComputeBufferConstructor {
     }
 }
 
-public protocol RenderBufferConstructor {
-    func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation
-}
-
 public class Buffer<Encoder: MTLCommandEncoder> {
     public var description: String?
     public var count: Int { representation.count }
@@ -144,27 +140,27 @@ extension ArrayBuffer: RenderBufferConstructor where Encoder == MTLRenderCommand
 
 public struct Bytes<Encoder: MTLCommandEncoder> {
     public var count: Int
-    var bytes: (Encoder, Int) -> Void
+    var bytes: (Encoder, Int, RenderFunction?) -> Void
 }
 
 extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
     public init<T: ComputeBufferConstructor>(_ array: [T]) {
         count = array.count
-        bytes = { encoder, index in
+        bytes = { encoder, index, _ in
             encoder.setBytes(array, length: MemoryLayout<T>.stride * array.count, index: index)
         }
     }
     
     public init(_ array: [Int]) {
         count = array.count
-        bytes = { encoder, index in
+        bytes = { encoder, index, _ in
             encoder.setBytes(array.map { Int32($0) }, length: MemoryLayout<Int32>.stride * array.count, index: index)
         }
     }
     
     public init<T>(_ bytes: T) {
         count = 1
-        self.bytes = { encoder, index in
+        self.bytes = { encoder, index, _ in
             encoder.setBytes([bytes], length: MemoryLayout<T>.stride, index: index)
         }
     }
@@ -187,30 +183,7 @@ extension Array where Element == Buffer<MTLComputeCommandEncoder> {
                     encoder.setBuffer(buffer, offset: 0, index: index)
                     self[index].representation = .raw(buffer, constructor.count)
                 case let .bytes(bytes):
-                    bytes.bytes(encoder, index)
-            }
-        }
-    }
-}
-
-extension Array where Element == Buffer<MTLRenderCommandEncoder> {
-    mutating func encode(
-        device: MTLDevice,
-        encoder: MTLRenderCommandEncoder,
-        renderFunction: RenderFunction
-    ) {
-        for (index, buffer) in self.enumerated() {
-            switch buffer.representation {
-                case let .raw(buffer, _):
-                    encoder.setBuffer(buffer, offset: 0, index: index, function: renderFunction)
-                case let .constructor(constructor):
-                    guard let buffer = constructor.buffer(device) else {
-                        fatalError("Unable to create buffer with device \(device)")
-                    }
-                    encoder.setBuffer(buffer, offset: 0, index: index, function: renderFunction)
-                    self[index].representation = .raw(buffer, constructor.count)
-                case let .bytes(bytes):
-                    bytes.bytes(encoder, index)
+                    bytes.bytes(encoder, index, nil)
             }
         }
     }

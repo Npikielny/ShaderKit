@@ -23,6 +23,7 @@ extension TextureConstructor {
         pixelFormat: MTLPixelFormat,
         width: Int,
         height: Int,
+        depth: Int = 1,
         storageMode: MTLStorageMode,
         read: Bool = false,
         write: Bool = false,
@@ -33,6 +34,7 @@ extension TextureConstructor {
             pixelFormat: pixelFormat,
             width: width,
             height: height,
+            depth: depth,
             storageMode: storageMode,
             usage: MTLTextureUsage(
                 [] +
@@ -48,6 +50,7 @@ extension TextureConstructor {
         pixelFormat: MTLPixelFormat,
         width: Int,
         height: Int,
+        depth: Int = 1,
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
     ) -> TextureConstructor {
@@ -64,6 +67,7 @@ extension TextureConstructor {
                 descriptor.pixelFormat = pixelFormat
             }
             
+            descriptor.depth = depth
             descriptor.width = width
             descriptor.height = height
             descriptor.storageMode = storageMode
@@ -76,6 +80,9 @@ extension TextureConstructor {
         name: String? = nil,
         pixelFormat: MTLPixelFormat? = nil,
         storageMode: MTLStorageMode? = nil,
+        width: Int? = nil,
+        height: Int? = nil,
+        depth: Int? = nil,
         usage: MTLTextureUsage? = nil
     ) -> TextureConstructor {
         // FIXME: Cycle
@@ -86,8 +93,9 @@ extension TextureConstructor {
             return Texture.newTexture(
                 name: name,
                 pixelFormat: pixelFormat ?? texture.pixelFormat,
-                width: texture.width,
-                height: texture.height,
+                width: width ?? texture.width,
+                height: height ?? texture.height,
+                depth: depth ?? texture.depth,
                 storageMode: storageMode ?? texture.storageMode,
                 usage: usage ?? texture.usage
             )

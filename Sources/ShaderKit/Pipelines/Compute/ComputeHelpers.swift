@@ -9,27 +9,34 @@ import Metal
 
 public struct ComputePass: SKShader {
     public var pipelines: [ComputePipeline]
-    public var size: (MTLDevice) -> SIMD2<Int>
+    public var size: (MTLDevice) -> SIMD3<Int>
     
     public init(texture: Texture, pipelines: [ComputePipeline]) {
         size = { device in
             let texture = texture.unwrap(device: device)
-            return SIMD2(texture.width, texture.height)
+            return SIMD3(texture.width, texture.height, texture.depth)
         }
         self.pipelines = pipelines
     }
     
+    /// For 2D dispatches
     public init(buffer: Buffer<MTLComputeCommandEncoder>, width: Int, pipelines: [ComputePipeline]) {
         size = { device in
-            SIMD2(
+            SIMD3(
                 min(width, buffer.count),
-                max((buffer.count + width - 1) / width, 1)
+                max((buffer.count + width - 1) / width, 1),
+                1
             )
         }
         self.pipelines = pipelines
     }
     
     public init(size: SIMD2<Int>, pipelines: [ComputePipeline]) {
+        self.size = { _ in SIMD3(size.x, size.y, 1) }
+        self.pipelines = pipelines
+    }
+    
+    public init(size: SIMD3<Int>, pipelines: [ComputePipeline]) {
         self.size = { _ in size }
         self.pipelines = pipelines
     }
@@ -43,7 +50,7 @@ extension ComputePass {
             pipelines[i].threadGroups = MTLSize(
                 width: (size.x + groupSize.width - 1) / groupSize.width,
                 height: (size.y + groupSize.height - 1) / groupSize.height,
-                depth: 1
+                depth: (size.y + groupSize.height - 1) / groupSize.height
             )
             pipelines[i].encode(commandBuffer: commandBuffer)
         }

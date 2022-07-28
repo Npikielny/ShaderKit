@@ -36,15 +36,19 @@ extension SKShader {
     }
 }
 
-extension Array: RenderCommandBufferConstructor where Element: SKShader {
+extension Array: RenderCommandBufferConstructor where Element: RenderCommandBufferConstructor {
     public func construct() -> RenderBuffer.RenderBuffer {
-        return .shaders(self)
+        return self.reduce(.empty) { partialResult, next in
+            partialResult + next.construct()
+        }
     }
 }
 
-extension Array: CommandBufferConstructor where Element: SKShader {
+extension Array: CommandBufferConstructor where Element: CommandBufferConstructor {
     public func construct() -> CommandBuffer.CommandBuffer {
-        return .shaders(self)
+        return self.reduce(.empty) { partialResult, next in
+            partialResult + next.construct()
+        }
     }
 }
 

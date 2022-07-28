@@ -125,7 +125,7 @@ extension RenderBuffer {
             commandBuffer.waitUntilCompleted()
         }
         
-        static func + (lhs: Self, rhs: Self) -> Self {
+        public static func + (lhs: Self, rhs: Self) -> Self {
             switch (lhs, rhs) {
                 case let (.constructors(c1), .constructors(c2)):
                     return .constructors(c1 + c2)

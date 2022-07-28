@@ -36,6 +36,18 @@ extension SKShader {
     }
 }
 
+extension Array: RenderCommandBufferConstructor where Element: SKShader {
+    public func construct() -> RenderBuffer.RenderBuffer {
+        return .shaders(self)
+    }
+}
+
+extension Array: CommandBufferConstructor where Element: SKShader {
+    public func construct() -> CommandBuffer.CommandBuffer {
+        return .shaders(self)
+    }
+}
+
 internal struct ShaderError: Error, CustomStringConvertible {
     var localizedDescription: String
     

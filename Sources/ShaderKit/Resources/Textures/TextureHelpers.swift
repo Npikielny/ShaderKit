@@ -67,6 +67,12 @@ extension TextureConstructor {
                 descriptor.pixelFormat = pixelFormat
             }
             
+            if depth > 1 {
+                descriptor.textureType = .type3D
+            } else {
+                descriptor.textureType = .type2D
+            }
+            
             descriptor.depth = depth
             descriptor.width = width
             descriptor.height = height

@@ -50,7 +50,7 @@ extension CommandBuffer {
         case shaders([SKShader])
         case mix(CommandBuffer, CommandBuffer)
 
-        static var empty: Self { .shaders([]) }
+        public static var empty: Self { .shaders([]) }
 
         private func concatenate(device: MTLDevice) throws -> [SKShader] {
             switch self {

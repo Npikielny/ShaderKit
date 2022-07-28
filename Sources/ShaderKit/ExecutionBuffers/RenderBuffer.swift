@@ -61,7 +61,7 @@ extension RenderBuffer {
         case shaders([SKShader])
         case mix(Self, Self)
         
-        static var empty: Self { .shaders([]) }
+        public static var empty: Self { .shaders([]) }
         
         private func concatenate(device: MTLDevice) throws -> [SKShader] {
             switch self {

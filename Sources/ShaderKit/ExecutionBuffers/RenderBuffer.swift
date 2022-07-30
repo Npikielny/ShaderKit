@@ -9,11 +9,16 @@ import MetalKit
 
 public class RenderBuffer: RenderOperation {
     var execution: RenderBuffer
-    var presents = false
+    var presents: Bool
     
-    public init(presents: Bool = false, @RenderBufferBuilder renderBuffer: () -> RenderBuffer) {
+    public init(presents: Bool = false, shaders: [SKShader]) {
         self.presents = presents
-        self.execution = renderBuffer()
+        execution = RenderBuffer.shaders(shaders)
+    }
+    
+    public init(presents: Bool = false, @RenderBufferBuilder renderBuffer: () throws -> RenderBuffer) rethrows {
+        self.presents = presents
+        self.execution = try renderBuffer()
     }
     
     public func presents(_ b: Bool) {

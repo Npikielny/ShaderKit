@@ -10,8 +10,12 @@ import MetalKit
 public class CommandBuffer: Operation {
     var execution: CommandBuffer
 
-    public init(@CommandBufferBuilder commandBuffer: () -> CommandBuffer) {
-        self.execution = commandBuffer()
+    public init(shaders: [SKShader]) {
+        self.execution = CommandBuffer.shaders(shaders)
+    }
+    
+    public init(@CommandBufferBuilder commandBuffer: () throws -> CommandBuffer) rethrows {
+        self.execution = try commandBuffer()
     }
 
     public func execute(commandQueue: MTLCommandQueue) async throws {

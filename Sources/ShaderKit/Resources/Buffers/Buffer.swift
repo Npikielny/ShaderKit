@@ -38,21 +38,29 @@ public class Buffer<Encoder: MTLCommandEncoder> {
         representation = .bytes(bytes)
     }
     
+    public init(_ future: Future<(MTLBuffer, Int)>) {
+        description = future.description
+        representation = .future(future)
+    }
+    
+    public init(_ description: String? = nil, _ future: @escaping (MTLCommandBuffer) -> (MTLBuffer, Int)) {
+        self.description = description
+        representation = .future(Future<(MTLBuffer, Int)>(nil, future))
+    }
+    
     public enum Representation {
         var count: Int {
             switch self {
-                case let .raw(_, count):
-                    return count
-                case let .constructor(array):
-                    return array.count
-                case let .bytes(bytes):
-                    return bytes.count
+                case let .raw(_, count): return count
+                case let .constructor(constructor): return constructor.count
+                case let .bytes(bytes): return bytes.count
+                case let .future(future): return future.result.1
             }
         }
-        
-        case raw(MTLBuffer, _ count: Int)
+        case raw(MTLBuffer, Int)
         case constructor(ArrayBuffer<Encoder>)
         case bytes(Bytes<Encoder>)
+        case future(Future<(MTLBuffer, Int)>)
     }
     
     public func copy(device: MTLDevice) -> Buffer<Encoder> {
@@ -63,10 +71,7 @@ public class Buffer<Encoder: MTLCommandEncoder> {
                     .raw(device.makeBuffer(length: buffer.length, options: .storageModePrivate)!, count)
                 )
             default:
-                return Buffer<Encoder>(
-                    "Copy of \(description ?? "unnamed")",
-                    representation
-                )
+                return Buffer<Encoder>("Copy of \(description ?? "unnamed")", representation)
         }
     }
 }
@@ -169,21 +174,26 @@ extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEnco
 
 extension Array where Element == Buffer<MTLComputeCommandEncoder> {
     public mutating func encode(
-        device: MTLDevice,
+        commandBuffer: MTLCommandBuffer,
         encoder: MTLComputeCommandEncoder
     ) {
+        
         for (index, buffer) in self.enumerated() {
             switch buffer.representation {
                 case let .raw(buffer, _):
                     encoder.setBuffer(buffer, offset: 0, index: index)
                 case let .constructor(constructor):
-                    guard let buffer = constructor.buffer(device) else {
-                        fatalError("Unable to create buffer with device \(device)")
+                    guard let buffer = constructor.buffer(commandBuffer.device) else {
+                        fatalError("Unable to create buffer with device \(commandBuffer.device)")
                     }
                     encoder.setBuffer(buffer, offset: 0, index: index)
                     self[index].representation = .raw(buffer, constructor.count)
                 case let .bytes(bytes):
                     bytes.bytes(encoder, index, nil)
+                case .future(let future):
+                    let buffer = future.unwrap(commandBuffer: commandBuffer)
+                    self[index].representation = .raw(buffer.0, buffer.1)
+                    encoder.setBuffer(buffer.0, offset: 0, index: index)
             }
         }
     }

@@ -118,8 +118,8 @@ Unabled to make render encoder \(pipeline.description)
         renderEncoder.setRenderPipelineState(pipeline)
         fragmentTextures.encode(device: device, encoder: renderEncoder, function: .fragment)
         vertexTextures.encode(device: device, encoder: renderEncoder, function: .vertex)
-        fragmentBuffers.encode(device: device, encoder: renderEncoder, function: .fragment)
-        vertexBuffers.encode(device: device, encoder: renderEncoder, function: .vertex)
+        fragmentBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .fragment)
+        vertexBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .vertex)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
     }
@@ -232,6 +232,14 @@ public enum RenderPassDescriptor: RenderPassDescriptorConstructor {
     case drawable
     case custom(MTLRenderPassDescriptor)
     case future((MTLDevice) -> MTLRenderPassDescriptor)
+    
+    public static func future(texture: Texture) -> Self {
+        .future { device in
+            let descriptor = MTLRenderPassDescriptor()
+            descriptor.colorAttachments[0].texture = texture.unwrap(device: device)
+            return descriptor
+        }
+    }
     
     public func construct() -> RenderPassDescriptor { self }
 }

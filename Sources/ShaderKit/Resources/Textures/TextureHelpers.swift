@@ -54,7 +54,7 @@ extension TextureConstructor {
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
     ) -> TextureConstructor {
-        OptionalTextureFuture(name) { device -> MTLTexture? in
+        OptionalTextureConstructorFuture(name) { device -> MTLTexture? in
             let descriptor = MTLTextureDescriptor()
             
             if pixelFormat == .rgba8Unorm_srgb &&
@@ -67,11 +67,7 @@ extension TextureConstructor {
                 descriptor.pixelFormat = pixelFormat
             }
             
-            if depth > 1 {
-                descriptor.textureType = .type3D
-            } else {
-                descriptor.textureType = .type2D
-            }
+            descriptor.textureType = depth > 1 ? .type3D : .type2D
             
             descriptor.depth = depth
             descriptor.width = width
@@ -93,7 +89,7 @@ extension TextureConstructor {
     ) -> TextureConstructor {
         // FIXME: Cycle
         let name = name ?? "Copy of \(self.description ?? "unnamed")"
-        return TextureFuture(name) { [self] device -> TextureConstructor in
+        return TextureConstructorFuture(name) { [self] device -> TextureConstructor in
             let texture = construct().unwrap(device: device)
             
             return Texture.newTexture(

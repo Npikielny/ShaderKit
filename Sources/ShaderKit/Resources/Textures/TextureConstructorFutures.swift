@@ -1,5 +1,5 @@
 //
-//  TextureLoader.swift
+//  TextureConstructorFuture.swift
 //  
 //
 //  Created by Noah Pikielny on 7/14/22.
@@ -7,7 +7,7 @@
 
 import MetalKit
 
-public struct TextureFuture: TextureConstructor {
+public struct TextureConstructorFuture: TextureConstructor {
     public var description: String?
     var create: (MTLDevice) -> MTLTexture
     
@@ -26,7 +26,7 @@ public struct TextureFuture: TextureConstructor {
     public func enumerate() -> Texture.Representation { .future(self) }
 }
 
-public struct OptionalTextureFuture: TextureConstructor {
+public struct OptionalTextureConstructorFuture: TextureConstructor {
     public var description: String?
     var create: (MTLDevice) -> MTLTexture?
     

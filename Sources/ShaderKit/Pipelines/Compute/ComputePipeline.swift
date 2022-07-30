@@ -72,7 +72,7 @@ public class ComputePipeline: SKShader {
         let pipeline = try! pipeline.unwrap(device: device)
         commandEncoder.setComputePipelineState(pipeline)
         textures.encode(device: device, encoder: commandEncoder)
-        buffers.encode(device: device, encoder: commandEncoder)
+        buffers.encode(commandBuffer: commandBuffer, encoder: commandEncoder)
         commandEncoder.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupSize)
         commandEncoder.endEncoding()
     }

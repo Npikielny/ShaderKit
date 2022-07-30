@@ -42,6 +42,9 @@ extension Buffer {
                 return buffer.bytes(to: to, count: array.count)
             case .bytes(_):
                 fatalError("Cannot unwrap constant/static resources")
+            case let .future(future):
+                let result = future.result
+                return result.0.bytes(to: to, count: result.1)
         }
     }
 }

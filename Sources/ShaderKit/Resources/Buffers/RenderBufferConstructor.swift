@@ -53,7 +53,7 @@ extension Bytes: RenderBufferConstructor where Encoder == MTLRenderCommandEncode
 
 extension Array where Element == Buffer<MTLRenderCommandEncoder> {
     mutating func encode(
-        device: MTLDevice,
+        commandBuffer: MTLCommandBuffer,
         encoder: MTLRenderCommandEncoder,
         function: RenderFunction
     ) {
@@ -62,13 +62,17 @@ extension Array where Element == Buffer<MTLRenderCommandEncoder> {
                 case let .raw(buffer, _):
                     encoder.setBuffer(buffer, offset: 0, index: index, function: function)
                 case let .constructor(constructor):
-                    guard let buffer = constructor.buffer(device) else {
-                        fatalError("Unable to create buffer with device \(device)")
+                    guard let buffer = constructor.buffer(commandBuffer.device) else {
+                        fatalError("Unable to create buffer with device \(commandBuffer.device)")
                     }
                     encoder.setBuffer(buffer, offset: 0, index: index, function: function)
                     self[index].representation = .raw(buffer, constructor.count)
                 case let .bytes(bytes):
                     bytes.bytes(encoder, index, function)
+                case let .future(future):
+                    let result = future.unwrap(commandBuffer: commandBuffer)
+                    self[index].representation = .raw(result.0, result.1)
+                    encoder.setBuffer(result.0, offset: 0, index: index, function: function)
             }
         }
     }

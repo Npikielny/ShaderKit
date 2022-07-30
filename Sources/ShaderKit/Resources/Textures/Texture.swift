@@ -40,8 +40,8 @@ extension Texture {
     public enum Representation: TextureConstructor {
         case raw(MTLTexture)
         case loadable(LoadableTexture)
-        case future(TextureFuture)
-        case optionalFuture(OptionalTextureFuture)
+        case future(TextureConstructorFuture)
+        case optionalFuture(OptionalTextureConstructorFuture)
         
         public static func path(_ path: String) -> Self {
             .loadable(LoadableTexture(path: path))

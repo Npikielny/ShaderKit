@@ -76,6 +76,17 @@ public class Buffer<Encoder: MTLCommandEncoder> {
     }
 }
 
+extension Buffer: Resource {
+    public func encode(commandBuffer: MTLCommandBuffer) {
+        switch representation {
+            case let .future(future):
+                let result = future.unwrap(commandBuffer: commandBuffer)
+                representation = .raw(result.0, result.1)
+            default: return
+        }
+    }
+}
+
 extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
     public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
         representation

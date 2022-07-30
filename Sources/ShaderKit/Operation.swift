@@ -34,3 +34,25 @@ public struct Execute: Operation {
     
     public func execute(commandQueue: MTLCommandQueue) async throws { try await execute(commandQueue.device) }
 }
+
+public struct FutureEncode: Operation {
+    var encode: (MTLCommandBuffer) async throws -> Void
+    
+    public init(encode: @escaping (MTLCommandBuffer) async throws -> Void) {
+        self.encode = encode
+    }
+    
+    public init(futures: [Resource]) {
+        self.encode = { commandBuffer in 
+            for future in futures {
+                future.encode(commandBuffer: commandBuffer)
+            }
+        }
+    }
+    
+    public func execute(commandQueue: MTLCommandQueue) async throws {
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        try await encode(commandBuffer)
+        commandBuffer.commit()
+    }
+}

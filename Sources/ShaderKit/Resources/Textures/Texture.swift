@@ -70,14 +70,14 @@ extension Texture {
                 return texture
             case let .future(future):
                 let texture = future.create(device)
-                representation = .raw(texture)
-                return texture
+                representation = texture.representation
+                return unwrap(device: device)
             case let .optionalFuture(future):
                 guard let texture = future.create(device) else {
                     fatalError("Failed unwrapping \(future.description ?? "unnamed texture")")
                 }
-                representation = .raw(texture)
-                return texture
+                representation = texture.representation
+                return unwrap(device: device)
         }
     }
     

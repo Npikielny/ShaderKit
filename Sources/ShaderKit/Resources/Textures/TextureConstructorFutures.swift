@@ -9,18 +9,16 @@ import MetalKit
 
 public struct TextureConstructorFuture: TextureConstructor {
     public var description: String?
-    var create: (MTLDevice) -> MTLTexture
+    var create: (MTLDevice) -> Texture
     
     public init(_ description: String? = nil, _ create: @escaping (MTLDevice) -> MTLTexture) {
         self.description = description
-        self.create = create
+        self.create = { Texture(create($0)) }
     }
     
     public init(_ description: String? = nil, _ create: @escaping (MTLDevice) -> TextureConstructor) {
         self.description = description
-        self.create = { device in
-            create(device).construct().unwrap(device: device)
-        }
+        self.create = { create($0).construct() }
     }
     
     public func enumerate() -> Texture.Representation { .future(self) }
@@ -28,18 +26,21 @@ public struct TextureConstructorFuture: TextureConstructor {
 
 public struct OptionalTextureConstructorFuture: TextureConstructor {
     public var description: String?
-    var create: (MTLDevice) -> MTLTexture?
+    var create: (MTLDevice) -> Texture?
     
     public init(_ description: String? = nil, _ create: @escaping (MTLDevice) -> MTLTexture?) {
         self.description = description
-        self.create = create
+        self.create = {
+            if let texture = create($0) {
+                return Texture(texture)
+            }
+            return nil
+        }
     }
     
     public init(_ description: String? = nil, _ create: @escaping (MTLDevice) -> TextureConstructor?) {
         self.description = description
-        self.create = { device in
-            create(device)?.construct().unwrap(device: device)
-        }
+        self.create = { create($0)?.construct() }
     }
     
     public func enumerate() -> Texture.Representation { .optionalFuture(self) }

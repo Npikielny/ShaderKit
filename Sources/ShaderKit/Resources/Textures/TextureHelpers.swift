@@ -28,7 +28,7 @@ extension TextureConstructor {
         read: Bool = false,
         write: Bool = false,
         renderTarget: Bool = false
-    ) -> TextureConstructor {
+    ) -> Texture {
         newTexture(
             name: name,
             pixelFormat: pixelFormat,
@@ -53,7 +53,7 @@ extension TextureConstructor {
         depth: Int = 1,
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
-    ) -> TextureConstructor {
+    ) -> Texture {
         OptionalTextureConstructorFuture(name) { device -> MTLTexture? in
             let descriptor = MTLTextureDescriptor()
             
@@ -75,7 +75,7 @@ extension TextureConstructor {
             descriptor.storageMode = storageMode
             descriptor.usage = usage
             return device.makeTexture(descriptor: descriptor)
-        }
+        }.construct()
     }
     
     public func emptyCopy(
@@ -86,7 +86,7 @@ extension TextureConstructor {
         height: Int? = nil,
         depth: Int? = nil,
         usage: MTLTextureUsage? = nil
-    ) -> TextureConstructor {
+    ) -> Texture {
         // FIXME: Cycle
         let name = name ?? "Copy of \(self.description ?? "unnamed")"
         return TextureConstructorFuture(name) { [self] device -> TextureConstructor in
@@ -101,7 +101,7 @@ extension TextureConstructor {
                 storageMode: storageMode ?? texture.storageMode,
                 usage: usage ?? texture.usage
             )
-        }
+        }.construct()
     }
 }
 

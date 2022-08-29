@@ -36,7 +36,7 @@ public struct MTKViewRepresentable: NSViewRepresentable {
     public func updateNSView(_ nsView: MTKView, context: Context) {}
 }
 #elseif os(iOS)
-public struct MTKViewRepresentable: NSViewRepresentable {
+public struct MTKViewRepresentable: UIViewRepresentable {
     public var view: MTKView
     public var delegate: MTKViewDelegate? {
         get { view.delegate }
@@ -48,11 +48,11 @@ public struct MTKViewRepresentable: NSViewRepresentable {
         set { view.device = newValue }
     }
     
-    public func makeNSView(context: Context) -> MTKView {
+    public func makeUIView(context: Context) -> MTKView {
         view
     }
     
-    public func updateNSView(_ nsView: MTKView, context: Context) {}
+    public func updateUIView(_ nsView: MTKView, context: Context) {}
 }
 #endif
 
@@ -90,7 +90,7 @@ extension MTKViewRepresentable {
     }
     
     public init(
-        frame: NSRect,
+        frame: CGRect,
         delegate: MTKViewDelegate? = nil,
         device: MTLDevice? = nil,
         configuration: Configuration? = nil
@@ -194,7 +194,7 @@ extension MTKViewRepresentable {
     }
     
     public init(
-        frame: NSRect,
+        frame: CGRect,
         operation: RenderOperation,
         device: MTLDevice? = nil,
         configuration: Configuration? = nil

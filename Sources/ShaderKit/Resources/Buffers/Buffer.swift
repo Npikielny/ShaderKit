@@ -126,7 +126,11 @@ public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
     public init<T>(_ bytes: [T]) {
         count = bytes.count
         buffer = { device in
+            #if os(iOS)
+            device.makeBuffer(bytes: bytes, length: MemoryLayout<T>.stride * bytes.count, options: .storageModeShared)
+            #else
             device.makeBuffer(bytes: bytes, length: MemoryLayout<T>.stride * bytes.count, options: .storageModeManaged)
+            #endif
         }
     }
     
@@ -140,9 +144,15 @@ public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
     public init<T>(bytes: [T], offset: Int = 0, count: Int) {
         self.count = count
         buffer = { device in
+            #if os(iOS)
+            guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count, options: .storageModeShared) else {
+                return nil
+            }
+            #else
             guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count, options: .storageModeManaged) else {
                 return nil
             }
+            #endif
             memcpy(buffer.contents() + offset * MemoryLayout<T>.stride, bytes, MemoryLayout<T>.stride * bytes.count)
             return buffer
         }

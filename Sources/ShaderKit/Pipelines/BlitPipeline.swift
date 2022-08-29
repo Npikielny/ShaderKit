@@ -36,7 +36,11 @@ public struct BlitPipeline: SKShader {
         let device = commandBuffer.device
         switch representation {
             case let .synchronizeTexture(texture):
+#if os(iOS)
+                return
+#else
                 encoder.synchronize(resource: texture.unwrap(device: device))
+#endif
             case let .direct(closure):
                 closure(encoder)
             case let .copy(from, to):

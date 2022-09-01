@@ -32,13 +32,14 @@ public class ComputePipeline: SKShader {
     
     public convenience init(
         name: String,
+        constants: MTLFunctionConstantValues? = nil,
         textures: [TextureConstructor] = [],
         buffers: [ComputeBufferConstructor] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {
         try self.init(
-            pipeline: .constructor(name),
+            pipeline: .constructor(name, constants),
             textures: textures,
             buffers: buffers,
             threadGroupSize: threadGroupSize,
@@ -80,10 +81,19 @@ public class ComputePipeline: SKShader {
     public enum Pipeline {
         case state(_ state: MTLComputePipelineState)
         case function(_ function: MTLFunction)
-        case constructor(_ name: String)
+        case constructor(_ name: String, _ constants: MTLFunctionConstantValues?)
         
-        static func makePipeline(_ name: String, device: MTLDevice) throws -> MTLComputePipelineState {
+        static func makePipeline(
+            _ name: String,
+            constants: MTLFunctionConstantValues? = nil,
+            device: MTLDevice
+        ) throws -> MTLComputePipelineState {
             guard let library = device.makeDefaultLibrary() else { fatalError("Device \(device) unable to make compile shaders") }
+            
+            if let constants = constants {
+                let function = try library.makeFunction(name: name, constantValues: constants)
+                return try makePipeline(function, device: device)
+            }
             guard let function = library.makeFunction(name: name) else { fatalError("Unable to make function \(name)") }
             return try makePipeline(function, device: device)
         }
@@ -100,8 +110,8 @@ public class ComputePipeline: SKShader {
                     let pipeline = try Self.makePipeline(function, device: device)
                     self = .state(pipeline)
                     return pipeline
-                case .constructor(let name):
-                    let pipeline = try Self.makePipeline(name, device: device)
+                case .constructor(let name, let constants):
+                    let pipeline = try Self.makePipeline(name, constants: constants, device: device)
                     self = .state(pipeline)
                     return pipeline
             }

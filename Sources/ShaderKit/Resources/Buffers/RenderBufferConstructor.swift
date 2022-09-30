@@ -48,6 +48,18 @@ extension Bytes: RenderBufferConstructor where Encoder == MTLRenderCommandEncode
             }
         }
     }
+    
+    public init<T>(_ bytes: @escaping () -> T) {
+        count = 1
+        self.bytes = { encoder, index, function in
+            switch function! {
+                case .fragment:
+                    encoder.setFragmentBytes([bytes()], length: MemoryLayout<T>.stride, index: index)
+                case .vertex:
+                    encoder.setVertexBytes([bytes()], length: MemoryLayout<T>.stride, index: index)
+            }
+        }
+    }
     public func enumerate() -> Buffer<Encoder>.Representation { .bytes(self) }
 }
 

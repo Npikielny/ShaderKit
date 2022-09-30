@@ -190,6 +190,13 @@ extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEnco
             encoder.setBytes([bytes], length: MemoryLayout<T>.stride, index: index)
         }
     }
+    
+    public init<T>(_ bytes: @escaping () -> T) {
+        count = 1
+        self.bytes = { encoder, index, _ in
+            encoder.setBytes([bytes()], length: MemoryLayout<T>.stride, index: index)
+        }
+    }
     public func enumerate() -> Buffer<Encoder>.Representation { .bytes(self) }
 }
 

@@ -22,13 +22,18 @@ public class RenderPipeline: SKShader {
     private var renderPassDescriptor: RenderPassDescriptor
     private var workingDescriptor: MTLRenderPassDescriptor?
     
+    private var vertexStart: Int
+    private var vertexCount: Int
+    
     public init(
         pipeline: Pipeline,
         vertexTextures: [TextureConstructor] = [],
         fragmentTextures: [TextureConstructor] = [],
         vertexBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
-        renderPassDescriptor: RenderPassDescriptorConstructor
+        renderPassDescriptor: RenderPassDescriptorConstructor,
+        vertexStart: Int = 0,
+        vertexCount: Int = 0
     ) throws {
         self.pipeline = pipeline
         
@@ -42,6 +47,9 @@ public class RenderPipeline: SKShader {
         if case let .custom(descriptor) = self.renderPassDescriptor {
             workingDescriptor = descriptor
         }
+        
+        self.vertexStart = vertexStart
+        self.vertexCount = vertexCount
     }
     
     public convenience init(
@@ -52,7 +60,9 @@ public class RenderPipeline: SKShader {
         fragmentTextures: [TextureConstructor] = [],
         vertexBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
-        renderPassDescriptor: RenderPassDescriptorConstructor
+        renderPassDescriptor: RenderPassDescriptorConstructor,
+        vertexStart: Int = 0,
+        vertexCount: Int = 0
     ) throws {
         try self.init(
             pipeline: .constructors(vertex, fragment, pipelineConstructor),
@@ -60,7 +70,9 @@ public class RenderPipeline: SKShader {
             fragmentTextures: fragmentTextures,
             vertexBuffers: vertexBuffers,
             fragmentBuffers: fragmentBuffers,
-            renderPassDescriptor: renderPassDescriptor
+            renderPassDescriptor: renderPassDescriptor,
+            vertexStart: vertexStart,
+            vertexCount: vertexCount
         )
     }
     
@@ -68,18 +80,22 @@ public class RenderPipeline: SKShader {
         inTexture: TextureConstructor,
         outTexture: TextureConstructor,
         fragment: String,
-        vertex: String
+        vertex: String,
+        vertexStart: Int = 0,
+        vertexCount: Int = 0
     ) throws {
         let outTexture = outTexture.construct()
         
         try self.init(
             pipeline: .constructors(vertex, fragment, RenderPipelineDescriptor.texture(outTexture)),
             fragmentTextures: [inTexture],
-            renderPassDescriptor: RenderPassDescriptor.future({ device in
+            renderPassDescriptor: RenderPassDescriptor.future { device in
                 let descriptor = MTLRenderPassDescriptor()
                 descriptor.colorAttachments[0].texture = outTexture.unwrap(device: device)
                 return descriptor
-            })
+            },
+            vertexStart: vertexStart,
+            vertexCount: vertexCount
         )
     }
     
@@ -120,7 +136,7 @@ Unabled to make render encoder \(pipeline.description)
         vertexTextures.encode(device: device, encoder: renderEncoder, function: .vertex)
         fragmentBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .fragment)
         vertexBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .vertex)
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: vertexCount)
         renderEncoder.endEncoding()
     }
     

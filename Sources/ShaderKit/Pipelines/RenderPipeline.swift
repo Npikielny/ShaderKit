@@ -249,10 +249,12 @@ public enum RenderPassDescriptor: RenderPassDescriptorConstructor {
     case custom(MTLRenderPassDescriptor)
     case future((MTLDevice) -> MTLRenderPassDescriptor)
     
-    public static func future(texture: Texture) -> Self {
+    public static func future(texture: Texture, loadAction: MTLLoadAction = .dontCare, storeAction: MTLStoreAction = .store) -> Self {
         .future { device in
             let descriptor = MTLRenderPassDescriptor()
             descriptor.colorAttachments[0].texture = texture.unwrap(device: device)
+            descriptor.colorAttachments[0].loadAction = loadAction
+            descriptor.colorAttachments[0].storeAction = storeAction
             return descriptor
         }
     }

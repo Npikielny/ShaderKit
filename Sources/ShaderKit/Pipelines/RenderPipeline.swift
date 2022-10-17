@@ -33,7 +33,7 @@ public class RenderPipeline: SKShader {
         fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor,
         vertexStart: Int = 0,
-        vertexCount: Int = 0
+        vertexCount: Int = 6
     ) throws {
         self.pipeline = pipeline
         
@@ -62,7 +62,7 @@ public class RenderPipeline: SKShader {
         fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor,
         vertexStart: Int = 0,
-        vertexCount: Int = 0
+        vertexCount: Int = 6
     ) throws {
         try self.init(
             pipeline: .constructors(vertex, fragment, pipelineConstructor),
@@ -82,7 +82,7 @@ public class RenderPipeline: SKShader {
         fragment: String,
         vertex: String,
         vertexStart: Int = 0,
-        vertexCount: Int = 0
+        vertexCount: Int = 6
     ) throws {
         let outTexture = outTexture.construct()
         

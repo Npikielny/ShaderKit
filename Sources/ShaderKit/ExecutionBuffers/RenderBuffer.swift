@@ -143,8 +143,14 @@ extension RenderBuffer {
     }
 }
 
+extension RenderBuffer.RenderBuffer: RenderCommandBufferConstructor {
+    public func construct() -> RenderBuffer.RenderBuffer {
+        return self
+    }
+}
+
 extension MTLCommandQueue {
-    func execute(
+    public func execute(
         renderBuffer: RenderBuffer,
         renderDescriptor: MTLRenderPassDescriptor,
         drawable: MTLDrawable

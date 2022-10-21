@@ -57,15 +57,15 @@ extension TextureConstructor {
         OptionalTextureConstructorFuture(name) { device -> MTLTexture? in
             let descriptor = MTLTextureDescriptor()
             
-            if pixelFormat == .rgba8Unorm_srgb &&
-                (usage.contains(.shaderWrite) || usage.contains(.renderTarget)) {
-                descriptor.pixelFormat = .rgba8Unorm
-            } else if pixelFormat == .bgra8Unorm_srgb &&
-                        (usage.contains(.shaderWrite) || usage.contains(.renderTarget))  {
-                descriptor.pixelFormat = .bgra8Unorm
-            } else {
+//            if pixelFormat == .rgba8Unorm_srgb &&
+//                (usage.contains(.shaderWrite) || usage.contains(.renderTarget)) {
+//                descriptor.pixelFormat = .rgba8Unorm
+//            } else if pixelFormat == .bgra8Unorm_srgb &&
+//                        (usage.contains(.shaderWrite) || usage.contains(.renderTarget))  {
+//                descriptor.pixelFormat = .bgra8Unorm
+//            } else {
                 descriptor.pixelFormat = pixelFormat
-            }
+//            }
             
             descriptor.textureType = depth > 1 ? .type3D : .type2D
             

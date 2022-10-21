@@ -1,51 +1,51 @@
 import Metal
 
-public protocol CommandBufferConstructor {
-    func construct() -> CommandBuffer.CommandBuffer
+public protocol CommandOperationConstructor {
+    func construct() -> CommandOperation.CommandBuffer
 }
 
-public protocol RenderCommandBufferConstructor {
-    func construct() -> RenderBuffer.RenderBuffer
+public protocol RenderOperationConstructor {
+    func construct() -> RenderOperation.RenderBuffer
 }
 
-public protocol SKConstructor: CommandBufferConstructor, RenderCommandBufferConstructor {
+public protocol SKConstructor: CommandOperationConstructor, RenderOperationConstructor {
     func initialize(device: MTLDevice) throws -> SKShader
 }
 
 extension SKConstructor {
-    public func construct() -> CommandBuffer.CommandBuffer {
+    public func construct() -> CommandOperation.CommandBuffer {
         .constructors([self])
     }
     
-    public func construct() -> RenderBuffer.RenderBuffer {
+    public func construct() -> RenderOperation.RenderBuffer {
         .constructors([self])
     }
 }
 
-public protocol SKShader: CommandBufferConstructor, RenderCommandBufferConstructor {
+public protocol SKShader: CommandOperationConstructor, RenderOperationConstructor {
     func encode(commandBuffer: MTLCommandBuffer)
 }
 
 extension SKShader {
-    public func construct() -> CommandBuffer.CommandBuffer {
+    public func construct() -> CommandOperation.CommandBuffer {
         .shaders([self])
     }
     
-    public func construct() -> RenderBuffer.RenderBuffer {
+    public func construct() -> RenderOperation.RenderBuffer {
         .shaders([self])
     }
 }
 
-extension Array: RenderCommandBufferConstructor where Element: RenderCommandBufferConstructor {
-    public func construct() -> RenderBuffer.RenderBuffer {
+extension Array: RenderOperationConstructor where Element: RenderOperationConstructor {
+    public func construct() -> RenderOperation.RenderBuffer {
         return self.reduce(.empty) { partialResult, next in
             partialResult + next.construct()
         }
     }
 }
 
-extension Array: CommandBufferConstructor where Element: CommandBufferConstructor {
-    public func construct() -> CommandBuffer.CommandBuffer {
+extension Array: CommandOperationConstructor where Element: CommandOperationConstructor {
+    public func construct() -> CommandOperation.CommandBuffer {
         return self.reduce(.empty) { partialResult, next in
             partialResult + next.construct()
         }

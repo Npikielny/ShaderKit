@@ -1,5 +1,5 @@
 //
-//  RenderBuffer.swift
+//  RenderOperation.swift
 //
 //
 //  Created by Noah Pikielny on 7/6/22.
@@ -7,7 +7,7 @@
 
 import MetalKit
 
-public class RenderBuffer: RenderOperation {
+public class RenderOperation: PresentingOperation {
     var execution: RenderBuffer
     var presents: Bool
     
@@ -35,18 +35,18 @@ public class RenderBuffer: RenderOperation {
     }
 }
 
-extension RenderBuffer {
+extension RenderOperation {
     @resultBuilder
     public struct RenderBufferBuilder {
-        public static func buildBlock(_ components: RenderCommandBufferConstructor...) -> RenderBuffer {
+        public static func buildBlock(_ components: RenderOperationConstructor...) -> RenderBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [RenderCommandBufferConstructor]) -> RenderBuffer {
+        public static func buildArray(_ components: [RenderOperationConstructor]) -> RenderBuffer {
             components.map { $00.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: RenderCommandBufferConstructor?) -> RenderBuffer {
+        public static func buildOptional(_ component: RenderOperationConstructor?) -> RenderBuffer {
             if let component = component {
                 return component.construct()
             } else {
@@ -54,13 +54,13 @@ extension RenderBuffer {
             }
         }
         
-        public static func buildEither(first component: RenderCommandBufferConstructor) -> RenderBuffer {
+        public static func buildEither(first component: RenderOperationConstructor) -> RenderBuffer {
             component.construct()
         }
     }
 }
 
-extension RenderBuffer {
+extension RenderOperation {
     public indirect enum RenderBuffer {
         case constructors([SKConstructor])
         case shaders([SKShader])
@@ -143,15 +143,15 @@ extension RenderBuffer {
     }
 }
 
-extension RenderBuffer.RenderBuffer: RenderCommandBufferConstructor {
-    public func construct() -> RenderBuffer.RenderBuffer {
+extension RenderOperation.RenderBuffer: RenderOperationConstructor {
+    public func construct() -> RenderOperation.RenderBuffer {
         return self
     }
 }
 
 extension MTLCommandQueue {
     public func execute(
-        renderBuffer: RenderBuffer,
+        renderBuffer: RenderOperation,
         renderDescriptor: MTLRenderPassDescriptor,
         drawable: MTLDrawable
     ) async throws {

@@ -1,5 +1,5 @@
 //
-//  CommandBuffer.swift
+//  CommandOperation.swift
 //  FluidLensing
 //
 //  Created by Noah Pikielny on 6/29/22.
@@ -7,7 +7,7 @@
 
 import MetalKit
 
-public class CommandBuffer: Operation {
+public class CommandOperation: Operation {
     var execution: CommandBuffer
 
     public init(shaders: [SKShader]) {
@@ -23,18 +23,18 @@ public class CommandBuffer: Operation {
     }
 }
 
-extension CommandBuffer {
+extension CommandOperation {
     @resultBuilder
     public struct CommandBufferBuilder {
-        public static func buildBlock(_ components: CommandBufferConstructor...) -> CommandBuffer {
+        public static func buildBlock(_ components: CommandOperationConstructor...) -> CommandBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [CommandBufferConstructor]) -> CommandBuffer {
+        public static func buildArray(_ components: [CommandOperationConstructor]) -> CommandBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: CommandBufferConstructor?) -> CommandBuffer {
+        public static func buildOptional(_ component: CommandOperationConstructor?) -> CommandBuffer {
             if let component = component {
                 return component.construct()
             } else {
@@ -42,14 +42,14 @@ extension CommandBuffer {
             }
         }
         
-        public static func buildEither(first component: CommandBufferConstructor) -> CommandBuffer {
+        public static func buildEither(first component: CommandOperationConstructor) -> CommandBuffer {
             component.construct()
         }
     }
 }
 
-extension CommandBuffer {
-    public indirect enum CommandBuffer: CommandBufferConstructor {
+extension CommandOperation {
+    public indirect enum CommandBuffer: CommandOperationConstructor {
         case constructors([SKConstructor])
         case shaders([SKShader])
         case mix(CommandBuffer, CommandBuffer)
@@ -110,11 +110,11 @@ extension CommandBuffer {
 }
 
 extension MTLCommandQueue {
-    public func execute(commandBuffer: CommandBuffer) async throws {
+    public func execute(commandBuffer: CommandOperation) async throws {
         try await commandBuffer.execution.execute(commandQueue: self)
     }
     
-    public func execute(@CommandBuffer.CommandBufferBuilder commandBuffer: () -> CommandBuffer.CommandBuffer) async throws {
-        try await execute(commandBuffer: CommandBuffer(commandBuffer: commandBuffer))
+    public func execute(@CommandOperation.CommandBufferBuilder commandBuffer: () -> CommandOperation.CommandBuffer) async throws {
+        try await execute(commandBuffer: CommandOperation(commandBuffer: commandBuffer))
     }
 }

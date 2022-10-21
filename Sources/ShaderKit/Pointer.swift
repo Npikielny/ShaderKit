@@ -8,7 +8,7 @@
 import Metal
 
 public class RawPointer<T> {
-    let pointer: UnsafeMutablePointer<T>
+    public let pointer: UnsafeMutablePointer<T>
     
     public init(_ pointer: UnsafeMutablePointer<T>) {
         self.pointer = pointer
@@ -20,6 +20,10 @@ public class RawPointer<T> {
     
     deinit {
         pointer.deallocate()
+    }
+    
+    func write(to: URL, count: Int, options: Data.WritingOptions? = nil) throws {
+        try Data(bytes: pointer, count: count).write(to: to, options: [])
     }
 }
 
@@ -113,3 +117,4 @@ extension Texture {
         bytes(device: device, type: Int32.self, components: components, region: region, mipMapLevel: mipMapLevel)
     }
 }
+

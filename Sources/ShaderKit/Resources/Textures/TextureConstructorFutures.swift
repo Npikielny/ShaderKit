@@ -54,10 +54,10 @@ public struct LoadableTexture: TextureConstructor {
     public var path: String
     public var description: String? { "Loading texture from \(path)" }
     
-    public func texture(device: MTLDevice) -> MTLTexture {
+    public func texture(device: MTLDevice, options: [MTKTextureLoader.Option : Any]? = nil) -> MTLTexture {
         let textureLoader = MTKTextureLoader(device: device)
         do {
-            return try textureLoader.newTexture(URL: URL(fileURLWithPath: path))
+            return try textureLoader.newTexture(URL: URL(fileURLWithPath: path), options: options)
         } catch {
             fatalError("Unable to create texture at \(path) because \n \(error.localizedDescription)")
         }

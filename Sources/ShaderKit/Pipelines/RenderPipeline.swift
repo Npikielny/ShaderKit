@@ -112,8 +112,26 @@ public class RenderPipeline: SKShader {
         }
     }
     
+    func attemptByPassDrawable(device: MTLDevice) {
+        switch renderPassDescriptor {
+            case .drawable:
+                fatalError(
+    """
+    Working descriptor not set. This is due to using a `CommandBuffer` instead of a `RenderBuffer` or not initializing with a renderPassDescriptor.
+    """
+                )
+            case .custom(let descriptor):
+                workingDescriptor = descriptor
+            case .future(let future):
+                workingDescriptor = future(device)
+        }
+    }
+    
     public func encode(commandBuffer: MTLCommandBuffer) {
-        guard let workingDescriptor = workingDescriptor else {
+        if workingDescriptor == nil {
+            attemptByPassDrawable(device: commandBuffer.device)
+        }
+        guard let workingDescriptor else {
             fatalError(
 """
 Working descriptor not set. This is due to using a `CommandBuffer` instead of a `RenderBuffer` or not initializing with a renderPassDescriptor.

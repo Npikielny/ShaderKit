@@ -20,7 +20,7 @@ public struct WriteOperation: Operation {
     let metaData: CGImageMetadata?
     let destination: String
     
-    init(texture: Texture, to destination: String, metaData: CGImageMetadata? = nil) {
+    public init(texture: Texture, to destination: String, metaData: CGImageMetadata? = nil) {
         self.texture = texture
         self.blit = BlitPipeline(.synchronizeTexture(texture))
         self.metaData = metaData

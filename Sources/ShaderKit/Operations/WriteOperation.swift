@@ -14,7 +14,7 @@ import Metal
 import UniformTypeIdentifiers
 
 @available(macOS 11.0, *)
-struct WriteOperation: Operation {
+public struct WriteOperation: Operation {
     public let texture: Texture
     let blit: BlitPipeline
     let metaData: CGImageMetadata?

@@ -47,14 +47,16 @@ public struct OptionalTextureConstructorFuture: TextureConstructor {
 }
 
 public struct LoadableTexture: TextureConstructor {
-    public init(path: String) {
+    public typealias OptionSet = [MTKTextureLoader.Option : Any]
+    public init(path: String, options: OptionSet? = nil) {
         self.path = path
     }
     
     public var path: String
+    public var options: OptionSet?
     public var description: String? { "Loading texture from \(path)" }
     
-    public func texture(device: MTLDevice, options: [MTKTextureLoader.Option : Any]? = nil) -> MTLTexture {
+    public func texture(device: MTLDevice) -> MTLTexture {
         let textureLoader = MTKTextureLoader(device: device)
         do {
             return try textureLoader.newTexture(URL: URL(fileURLWithPath: path), options: options)

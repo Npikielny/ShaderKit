@@ -100,6 +100,10 @@ extension String: TextureConstructor {
     public func enumerate() -> Texture.Representation {
         .loadable(LoadableTexture(path: self))
     }
+    
+    public func construct(options: LoadableTexture.OptionSet) -> Texture {
+        LoadableTexture(path: self, options: options).construct()
+    }
 }
 
 extension Array where Element == Texture {

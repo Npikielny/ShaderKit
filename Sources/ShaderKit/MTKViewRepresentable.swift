@@ -174,10 +174,10 @@ extension MTKViewRepresentable {
             }
         }
         
-        public func asyncDraw(in view: MTKView) async throws {
+        public func asyncDraw(in view: MTKViewRepresentable) async throws {
             guard let commandQueue = commandQueue,
-                  let drawable = await view.currentDrawable,
-                  let renderPassDescriptor = await view.currentRenderPassDescriptor else { return }
+                  let drawable = view.currentDrawable,
+                  let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
             
             try await operation.execute(
                 commandQueue: commandQueue,

@@ -7,14 +7,14 @@
 
 import Metal
 
-public struct OperationSet: PresentingOperation {
+public struct RenderOperationSet: PresentingOperation {
     var operations: [PresentingOperation]
     
     public init(first: PresentingOperation, second: PresentingOperation) {
         self.operations = [first, second]
     }
     
-    public init(@OperationSetBuilder operations: () -> [PresentingOperation]) {
+    public init(@RenderOperationSetBuilder operations: () -> [PresentingOperation]) {
         self.operations = operations()
     }
     
@@ -30,12 +30,45 @@ public struct OperationSet: PresentingOperation {
 }
 
 @resultBuilder
-public struct OperationSetBuilder {
+public struct RenderOperationSetBuilder {
     public static func buildBlock(_ components: PresentingOperation...) -> [PresentingOperation] {
         components
     }
     
     public static func buildArray(_ components: [PresentingOperation]) -> [PresentingOperation] {
+        components
+    }
+}
+
+public struct CommandOperationSet: PresentingOperation {
+    var operations: [Operation]
+    
+    public init(first: Operation, second: Operation) {
+        self.operations = [first, second]
+    }
+    
+    public init(@CommandOperationSetBuilder operations: () -> [Operation]) {
+        self.operations = operations()
+    }
+    
+    public init(operations: [Operation]) {
+        self.operations = operations
+    }
+    
+    public func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
+        for operation in operations {
+            try await operation.execute(commandQueue: commandQueue)
+        }
+    }
+}
+
+@resultBuilder
+public struct CommandOperationSetBuilder {
+    public static func buildBlock(_ components: Operation...) -> [Operation] {
+        components
+    }
+    
+    public static func buildArray(_ components: [Operation]) -> [Operation] {
         components
     }
 }

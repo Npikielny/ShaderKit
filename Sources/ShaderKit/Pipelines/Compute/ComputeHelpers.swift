@@ -7,7 +7,7 @@
 
 import Metal
 
-public struct ComputePass: SKShader {
+public struct ComputePass {
     public var pipelines: [ComputePipeline]
     public var size: (MTLDevice) -> SIMD3<Int>
     
@@ -54,5 +54,16 @@ extension ComputePass {
             )
             pipelines[i].encode(commandBuffer: commandBuffer)
         }
+    }
+}
+
+extension ComputePass: Operation {
+    public func execute(commandQueue: MTLCommandQueue) async throws {
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else {
+            throw ShaderError("Unabled to make command buffer with \(commandQueue.device.name)")
+        }
+        encode(commandBuffer: commandBuffer)
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
     }
 }

@@ -7,7 +7,7 @@
 
 import Metal
 
-public struct ComputePass {
+public struct ComputePass: SKShader {
     public var pipelines: [ComputePipeline]
     public var size: (MTLDevice) -> SIMD3<Int>
     

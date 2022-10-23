@@ -1,5 +1,5 @@
 //
-//  CommandBuffer.swift
+//  CommandOperation.swift
 //  FluidLensing
 //
 //  Created by Noah Pikielny on 6/29/22.
@@ -7,7 +7,7 @@
 
 import MetalKit
 
-public class CommandBuffer: Operation {
+public class CommandOperation: Operation {
     var execution: CommandBuffer
 
     public init(shaders: [SKShader]) {
@@ -23,7 +23,7 @@ public class CommandBuffer: Operation {
     }
 }
 
-extension CommandBuffer {
+extension CommandOperation {
     @resultBuilder
     public struct CommandBufferBuilder {
         public static func buildBlock(_ components: CommandBufferConstructor...) -> CommandBuffer {
@@ -48,7 +48,7 @@ extension CommandBuffer {
     }
 }
 
-extension CommandBuffer {
+extension CommandOperation {
     public indirect enum CommandBuffer: CommandBufferConstructor {
         case constructors([SKConstructor])
         case shaders([SKShader])
@@ -110,11 +110,11 @@ extension CommandBuffer {
 }
 
 extension MTLCommandQueue {
-    public func execute(commandBuffer: CommandBuffer) async throws {
+    public func execute(commandBuffer: CommandOperation) async throws {
         try await commandBuffer.execution.execute(commandQueue: self)
     }
     
-    public func execute(@CommandBuffer.CommandBufferBuilder commandBuffer: () -> CommandBuffer.CommandBuffer) async throws {
-        try await execute(commandBuffer: CommandBuffer(commandBuffer: commandBuffer))
+    public func execute(@CommandOperation.CommandBufferBuilder commandBuffer: () -> CommandOperation.CommandBuffer) async throws {
+        try await execute(commandBuffer: CommandOperation(commandBuffer: commandBuffer))
     }
 }

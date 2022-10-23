@@ -7,11 +7,11 @@
 
 import Metal
 
-public protocol RenderOperation {
+public protocol PresentingOperation {
     func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws
 }
 
-public protocol Operation: RenderOperation {
+public protocol Operation: PresentingOperation {
     func execute(commandQueue: MTLCommandQueue) async throws
 }
 

@@ -29,10 +29,10 @@ struct OperationSequenceBuilder {
 }
 
 // MARK: - Render Operation
-public struct RenderOperationSequence: RenderOperation {
-    var operations: [RenderOperation]
+public struct RenderOperationSequence: PresentingOperation {
+    var operations: [PresentingOperation]
     
-    public init(operations: [RenderOperation]) {
+    public init(operations: [PresentingOperation]) {
         self.operations = operations
     }
     
@@ -49,7 +49,7 @@ public struct RenderOperationSequence: RenderOperation {
 
 @resultBuilder
 struct RenderOperationSequenceBuilder {
-    static func buildBlock(_ components: RenderOperation...) -> RenderOperation {
+    static func buildBlock(_ components: PresentingOperation...) -> PresentingOperation {
         RenderOperationSequence(operations: components.map { [$0] }.reduce([], +))
     }
 }

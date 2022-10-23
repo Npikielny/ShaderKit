@@ -11,7 +11,7 @@ final class ShaderKitTests: XCTestCase {
     }
     
     func testCommandBufferCompilation() {
-        let commandBuffer = CommandBuffer {
+        let commandBuffer = CommandOperation {
             for _ in 0...3 {
                 FakeShader()
             }

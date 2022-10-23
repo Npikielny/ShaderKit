@@ -1,5 +1,5 @@
 //
-//  RenderBuffer.swift
+//  RenderOperation.swift
 //
 //
 //  Created by Noah Pikielny on 7/6/22.
@@ -7,7 +7,7 @@
 
 import MetalKit
 
-public class RenderBuffer: RenderOperation {
+public class RenderOperation: PresentingOperation {
     var execution: RenderBuffer
     var presents: Bool
     
@@ -35,7 +35,7 @@ public class RenderBuffer: RenderOperation {
     }
 }
 
-extension RenderBuffer {
+extension RenderOperation {
     @resultBuilder
     public struct RenderBufferBuilder {
         public static func buildBlock(_ components: RenderCommandBufferConstructor...) -> RenderBuffer {
@@ -60,7 +60,7 @@ extension RenderBuffer {
     }
 }
 
-extension RenderBuffer {
+extension RenderOperation {
     public indirect enum RenderBuffer {
         case constructors([SKConstructor])
         case shaders([SKShader])
@@ -143,15 +143,15 @@ extension RenderBuffer {
     }
 }
 
-extension RenderBuffer.RenderBuffer: RenderCommandBufferConstructor {
-    public func construct() -> RenderBuffer.RenderBuffer {
+extension RenderOperation.RenderBuffer: RenderCommandBufferConstructor {
+    public func construct() -> RenderOperation.RenderBuffer {
         return self
     }
 }
 
 extension MTLCommandQueue {
     public func execute(
-        renderBuffer: RenderBuffer,
+        renderBuffer: RenderOperation,
         renderDescriptor: MTLRenderPassDescriptor,
         drawable: MTLDrawable
     ) async throws {

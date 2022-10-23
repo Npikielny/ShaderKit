@@ -134,7 +134,7 @@ public protocol ShaderDelegate: AnyObject {
 
 extension MTKViewRepresentable {
     public class ShaderDelegateInterface: NSObject, MTKViewDelegate {
-        public var operation: RenderOperation
+        public var operation: PresentingOperation
         public weak var delegate: ShaderDelegate?
         public var device: MTLDevice? {
             didSet {
@@ -144,7 +144,7 @@ extension MTKViewRepresentable {
         
         var commandQueue: MTLCommandQueue?
         
-        public init(operation: RenderOperation, device: MTLDevice?) {
+        public init(operation: PresentingOperation, device: MTLDevice?) {
             self.operation = operation
             self.device = device
             super.init()
@@ -200,7 +200,7 @@ extension MTKViewRepresentable {
     
     public init(
         view: MTKView,
-        operation: RenderOperation,
+        operation: PresentingOperation,
         device: MTLDevice? = nil,
         configuration: Configuration? = nil,
         pixelFormat: MTLPixelFormat? = nil
@@ -221,7 +221,7 @@ extension MTKViewRepresentable {
     
     public init(
         frame: CGRect,
-        operation: RenderOperation,
+        operation: PresentingOperation,
         device: MTLDevice? = nil,
         configuration: Configuration? = nil,
         pixelFormat: MTLPixelFormat? = nil

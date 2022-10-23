@@ -17,7 +17,7 @@ public enum Configuration {
 }
 #if os(macOS)
 public struct MTKViewRepresentable: NSViewRepresentable {
-    public var view: MTKView
+    var view: MTKView
     public var delegate: MTKViewDelegate? {
         didSet {
             view.delegate = delegate
@@ -37,7 +37,7 @@ public struct MTKViewRepresentable: NSViewRepresentable {
 }
 #elseif os(iOS)
 public struct MTKViewRepresentable: UIViewRepresentable {
-    public var view: MTKView
+    var view: MTKView
     public var delegate: MTKViewDelegate? {
         get { view.delegate }
         set { view.delegate = newValue }
@@ -57,6 +57,18 @@ public struct MTKViewRepresentable: UIViewRepresentable {
 #endif
 
 extension MTKViewRepresentable {
+    var currentDrawable: CAMetalDrawable? {
+        view.currentDrawable
+    }
+    
+    var nextDrawable: CAMetalDrawable? {
+        (view.layer as? CAMetalLayer)?.nextDrawable()
+    }
+    
+    var currentRenderPassDescriptor: MTLRenderPassDescriptor? {
+        view.currentRenderPassDescriptor
+    }
+    
     public func draw() {
         delegate?.draw(in: view)
     }

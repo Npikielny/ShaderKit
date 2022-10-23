@@ -130,7 +130,7 @@ extension MTLPixelFormat {
             case .abgr4Unorm, .bgr5A1Unorm, .rgba8Unorm, .rgba8Unorm_srgb, .rgba8Snorm, .rgba8Uint, .rgba8Sint, .bgra8Unorm, .bgra8Unorm_srgb, .rgb10a2Unorm, .rgb10a2Uint, .bgr10a2Unorm, .rgba16Unorm, .rgba16Snorm, .rgba16Uint, .rgba16Sint, .rgba16Float, .rgba32Uint, .rgba32Sint, .rgba32Float:
                 return 4
             default:
-                fatalError("Unimplemented pixel type \(self)")
+                fatalError("Pixel type with unknown channel count")
         }
     }
     

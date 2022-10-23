@@ -89,9 +89,13 @@ extension MTKViewRepresentable {
         view: MTKView,
         delegate: MTKViewDelegate? = nil,
         device: MTLDevice? = nil,
-        configuration: Configuration? = nil
+        configuration: Configuration? = nil,
+        pixelFormat: MTLPixelFormat? = nil
     ) {
         self.view = view
+        if let pixelFormat {
+            view.colorPixelFormat = pixelFormat
+        }
         self.delegate = delegate
         self.device = device
         
@@ -105,11 +109,16 @@ extension MTKViewRepresentable {
         frame: CGRect,
         delegate: MTKViewDelegate? = nil,
         device: MTLDevice? = nil,
-        configuration: Configuration? = nil
+        configuration: Configuration? = nil,
+        pixelFormat: MTLPixelFormat? = nil
     ) {
         self.view = MTKView(frame: frame)
         self.delegate = delegate
         self.device = device
+        
+        if let pixelFormat {
+            view.colorPixelFormat = pixelFormat
+        }
         
         if let configuration = configuration,
            case let .timer(timer) = getConfiguration(configuration) {
@@ -193,9 +202,14 @@ extension MTKViewRepresentable {
         view: MTKView,
         operation: RenderOperation,
         device: MTLDevice? = nil,
-        configuration: Configuration? = nil
+        configuration: Configuration? = nil,
+        pixelFormat: MTLPixelFormat? = nil
     ) {
         self.view = view
+        
+        if let pixelFormat {
+            self.view.colorPixelFormat = pixelFormat
+        }
         delegate = ShaderDelegateInterface(operation: operation, device: device)
         self.device = device
         
@@ -209,9 +223,13 @@ extension MTKViewRepresentable {
         frame: CGRect,
         operation: RenderOperation,
         device: MTLDevice? = nil,
-        configuration: Configuration? = nil
+        configuration: Configuration? = nil,
+        pixelFormat: MTLPixelFormat? = nil
     ) {
         self.view = MTKView(frame: frame)
+        if let pixelFormat {
+            self.view.colorPixelFormat = pixelFormat
+        }
         delegate = ShaderDelegateInterface(operation: operation, device: device)
         self.device = device
         

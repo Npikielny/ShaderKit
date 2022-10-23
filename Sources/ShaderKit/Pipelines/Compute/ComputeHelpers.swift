@@ -50,7 +50,7 @@ extension ComputePass {
             pipelines[i].threadGroups = MTLSize(
                 width: (size.x + groupSize.width - 1) / groupSize.width,
                 height: (size.y + groupSize.height - 1) / groupSize.height,
-                depth: (size.y + groupSize.height - 1) / groupSize.height
+                depth: (size.z + groupSize.depth - 1) / groupSize.depth
             )
             pipelines[i].encode(commandBuffer: commandBuffer)
         }

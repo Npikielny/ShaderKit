@@ -1,5 +1,5 @@
 //
-//  CombinationOperation.swift
+//  OperationSet.swift
 //  
 //
 //  Created by Noah Pikielny on 10/22/22.
@@ -12,6 +12,10 @@ public struct OperationSet: PresentingOperation {
     
     public init(first: PresentingOperation, second: PresentingOperation) {
         self.operations = [first, second]
+    }
+    
+    public init(@OperationSetBuilder operations: () -> [PresentingOperation]) {
+        self.operations = operations()
     }
     
     public init(operations: [PresentingOperation]) {
@@ -27,11 +31,11 @@ public struct OperationSet: PresentingOperation {
 
 @resultBuilder
 public struct OperationSetBuilder {
-    public static func buildBlock(_ components: PresentingOperation...) -> OperationSet {
-        OperationSet(operations: components)
+    public static func buildBlock(_ components: PresentingOperation...) -> [PresentingOperation] {
+        components
     }
     
-    public static func buildArray(_ components: [PresentingOperation]) -> OperationSet {
-        OperationSet(operations: components)
+    public static func buildArray(_ components: [PresentingOperation]) -> [PresentingOperation] {
+        components
     }
 }

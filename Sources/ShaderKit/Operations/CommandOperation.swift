@@ -26,15 +26,15 @@ public class CommandOperation: Operation {
 extension CommandOperation {
     @resultBuilder
     public struct CommandBufferBuilder {
-        public static func buildBlock(_ components: CommandBufferConstructor...) -> CommandBuffer {
+        public static func buildBlock(_ components: CommandOperationConstructor...) -> CommandBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [CommandBufferConstructor]) -> CommandBuffer {
+        public static func buildArray(_ components: [CommandOperationConstructor]) -> CommandBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: CommandBufferConstructor?) -> CommandBuffer {
+        public static func buildOptional(_ component: CommandOperationConstructor?) -> CommandBuffer {
             if let component = component {
                 return component.construct()
             } else {
@@ -42,14 +42,14 @@ extension CommandOperation {
             }
         }
         
-        public static func buildEither(first component: CommandBufferConstructor) -> CommandBuffer {
+        public static func buildEither(first component: CommandOperationConstructor) -> CommandBuffer {
             component.construct()
         }
     }
 }
 
 extension CommandOperation {
-    public indirect enum CommandBuffer: CommandBufferConstructor {
+    public indirect enum CommandBuffer: CommandOperationConstructor {
         case constructors([SKConstructor])
         case shaders([SKShader])
         case mix(CommandBuffer, CommandBuffer)

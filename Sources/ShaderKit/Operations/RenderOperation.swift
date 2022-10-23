@@ -38,15 +38,15 @@ public class RenderOperation: PresentingOperation {
 extension RenderOperation {
     @resultBuilder
     public struct RenderBufferBuilder {
-        public static func buildBlock(_ components: RenderCommandBufferConstructor...) -> RenderBuffer {
+        public static func buildBlock(_ components: RenderOperationConstructor...) -> RenderBuffer {
             components.map { $0.construct() }.reduce(.empty, +)
         }
         
-        public static func buildArray(_ components: [RenderCommandBufferConstructor]) -> RenderBuffer {
+        public static func buildArray(_ components: [RenderOperationConstructor]) -> RenderBuffer {
             components.map { $00.construct() }.reduce(.empty, +)
         }
         
-        public static func buildOptional(_ component: RenderCommandBufferConstructor?) -> RenderBuffer {
+        public static func buildOptional(_ component: RenderOperationConstructor?) -> RenderBuffer {
             if let component = component {
                 return component.construct()
             } else {
@@ -54,7 +54,7 @@ extension RenderOperation {
             }
         }
         
-        public static func buildEither(first component: RenderCommandBufferConstructor) -> RenderBuffer {
+        public static func buildEither(first component: RenderOperationConstructor) -> RenderBuffer {
             component.construct()
         }
     }
@@ -143,7 +143,7 @@ extension RenderOperation {
     }
 }
 
-extension RenderOperation.RenderBuffer: RenderCommandBufferConstructor {
+extension RenderOperation.RenderBuffer: RenderOperationConstructor {
     public func construct() -> RenderOperation.RenderBuffer {
         return self
     }

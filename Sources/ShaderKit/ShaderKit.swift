@@ -1,14 +1,14 @@
 import Metal
 
-public protocol CommandBufferConstructor {
+public protocol CommandOperationConstructor {
     func construct() -> CommandOperation.CommandBuffer
 }
 
-public protocol RenderCommandBufferConstructor {
+public protocol RenderOperationConstructor {
     func construct() -> RenderOperation.RenderBuffer
 }
 
-public protocol SKConstructor: CommandBufferConstructor, RenderCommandBufferConstructor {
+public protocol SKConstructor: CommandOperationConstructor, RenderOperationConstructor {
     func initialize(device: MTLDevice) throws -> SKShader
 }
 
@@ -22,7 +22,7 @@ extension SKConstructor {
     }
 }
 
-public protocol SKShader: CommandBufferConstructor, RenderCommandBufferConstructor {
+public protocol SKShader: CommandOperationConstructor, RenderOperationConstructor {
     func encode(commandBuffer: MTLCommandBuffer)
 }
 
@@ -36,7 +36,7 @@ extension SKShader {
     }
 }
 
-extension Array: RenderCommandBufferConstructor where Element: RenderCommandBufferConstructor {
+extension Array: RenderOperationConstructor where Element: RenderOperationConstructor {
     public func construct() -> RenderOperation.RenderBuffer {
         return self.reduce(.empty) { partialResult, next in
             partialResult + next.construct()
@@ -44,7 +44,7 @@ extension Array: RenderCommandBufferConstructor where Element: RenderCommandBuff
     }
 }
 
-extension Array: CommandBufferConstructor where Element: CommandBufferConstructor {
+extension Array: CommandOperationConstructor where Element: CommandOperationConstructor {
     public func construct() -> CommandOperation.CommandBuffer {
         return self.reduce(.empty) { partialResult, next in
             partialResult + next.construct()

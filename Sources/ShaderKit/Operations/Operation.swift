@@ -11,6 +11,12 @@ public protocol PresentingOperation {
     func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws
 }
 
+extension PresentingOperation {
+    static func + <T: PresentingOperation>(lhs: Self, rhs: T) -> PresentingOperation {
+        return OperationSet(first: lhs, second: rhs)
+    }
+}
+
 public protocol Operation: PresentingOperation {
     func execute(commandQueue: MTLCommandQueue) async throws
 }

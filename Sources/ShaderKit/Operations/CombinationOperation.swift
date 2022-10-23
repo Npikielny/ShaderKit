@@ -24,3 +24,14 @@ public struct OperationSet: PresentingOperation {
         }
     }
 }
+
+@resultBuilder
+public struct OperationSetBuilder {
+    public static func buildBlock(_ components: PresentingOperation...) -> OperationSet {
+        OperationSet(operations: components)
+    }
+    
+    public static func buildArray(_ components: [PresentingOperation]) -> OperationSet {
+        OperationSet(operations: components)
+    }
+}

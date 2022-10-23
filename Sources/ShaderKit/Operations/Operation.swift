@@ -12,7 +12,7 @@ public protocol PresentingOperation {
 }
 
 extension PresentingOperation {
-    static func + <T: PresentingOperation>(lhs: Self, rhs: T) -> PresentingOperation {
+    public static func + <T: PresentingOperation>(lhs: Self, rhs: T) -> PresentingOperation {
         return OperationSet(first: lhs, second: rhs)
     }
 }

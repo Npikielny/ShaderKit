@@ -119,7 +119,7 @@ extension Texture {
 }
 
 extension MTLPixelFormat {
-    var channels: Int {
+    public var channels: Int {
         switch self {
             case .a8Unorm, .r8Unorm, .r8Unorm_srgb, .r8Snorm, .r8Uint, .r8Sint, .r16Unorm, .r16Snorm, .r16Uint, .r16Sint, .r16Float, .r32Uint, .r32Sint, .r32Float:
                 return 1

@@ -57,15 +57,15 @@ public struct MTKViewRepresentable: UIViewRepresentable {
 #endif
 
 extension MTKViewRepresentable {
-    var currentDrawable: CAMetalDrawable? {
+    public var currentDrawable: CAMetalDrawable? {
         view.currentDrawable
     }
     
-    var nextDrawable: CAMetalDrawable? {
+    public var nextDrawable: CAMetalDrawable? {
         (view.layer as? CAMetalLayer)?.nextDrawable()
     }
     
-    var currentRenderPassDescriptor: MTLRenderPassDescriptor? {
+    public var currentRenderPassDescriptor: MTLRenderPassDescriptor? {
         view.currentRenderPassDescriptor
     }
     

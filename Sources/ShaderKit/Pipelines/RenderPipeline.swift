@@ -7,7 +7,8 @@
 
 import MetalKit
 
-enum RenderFunction {
+enum EncodingFunction {
+    case compute
     case vertex
     case fragment
 }
@@ -16,8 +17,8 @@ public class RenderPipeline: SKShader {
     private var pipeline: Pipeline
     public var vertexTextures: [Texture]
     public var fragmentTextures: [Texture]
-    public var vertexBuffers: [Buffer<MTLRenderCommandEncoder>]
-    public var fragmentBuffers: [Buffer<MTLRenderCommandEncoder>]
+    public var vertexBuffers: [Buffer]
+    public var fragmentBuffers: [Buffer]
     
     private var renderPassDescriptor: RenderPassDescriptor
     private var workingDescriptor: MTLRenderPassDescriptor?
@@ -29,8 +30,8 @@ public class RenderPipeline: SKShader {
         pipeline: Pipeline,
         vertexTextures: [TextureConstructor] = [],
         fragmentTextures: [TextureConstructor] = [],
-        vertexBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
-        fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
+        vertexBuffers: [Buffer] = [],
+        fragmentBuffers: [Buffer] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor,
         vertexStart: Int = 0,
         vertexCount: Int = 6
@@ -58,8 +59,8 @@ public class RenderPipeline: SKShader {
         vertex: String,
         vertexTextures: [TextureConstructor] = [],
         fragmentTextures: [TextureConstructor] = [],
-        vertexBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
-        fragmentBuffers: [Buffer<MTLRenderCommandEncoder>] = [],
+        vertexBuffers: [Buffer] = [],
+        fragmentBuffers: [Buffer] = [],
         renderPassDescriptor: RenderPassDescriptorConstructor,
         vertexStart: Int = 0,
         vertexCount: Int = 6
@@ -112,7 +113,7 @@ public class RenderPipeline: SKShader {
         }
     }
     
-    func attemptByPassDrawable(device: MTLDevice) {
+    func attemptBypassDrawable(device: MTLDevice) {
         switch renderPassDescriptor {
             case .drawable:
                 fatalError(
@@ -129,7 +130,7 @@ public class RenderPipeline: SKShader {
     
     public func encode(commandBuffer: MTLCommandBuffer) {
         if workingDescriptor == nil {
-            attemptByPassDrawable(device: commandBuffer.device)
+            attemptBypassDrawable(device: commandBuffer.device)
         }
         guard let workingDescriptor else {
             fatalError(
@@ -150,10 +151,12 @@ Unabled to make render encoder \(pipeline.description)
         let pipeline = try! pipeline.unwrap(device: device)
         
         renderEncoder.setRenderPipelineState(pipeline)
-        fragmentTextures.encode(device: device, encoder: renderEncoder, function: .fragment)
-        vertexTextures.encode(device: device, encoder: renderEncoder, function: .vertex)
-        fragmentBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .fragment)
-        vertexBuffers.encode(commandBuffer: commandBuffer, encoder: renderEncoder, function: .vertex)
+        let wrapped = renderEncoder.wrapped
+        
+        wrapped.setTextures(device: device, textures: fragmentTextures, function: .fragment)
+        wrapped.setTextures(device: device, textures: vertexTextures, function: .vertex)
+        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &fragmentBuffers, function: .fragment)
+        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &vertexBuffers, function: .vertex)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: vertexCount)
         renderEncoder.endEncoding()
     }
@@ -286,25 +289,4 @@ extension MTLRenderPassDescriptor: RenderPassDescriptorConstructor {
 
 public protocol RenderPassDescriptorConstructor {
     func construct() -> RenderPassDescriptor
-}
-
-// MARK: MTLRenderCommandEncoder Helpers
-extension MTLRenderCommandEncoder {
-    func setBuffer(_ buffer: MTLBuffer, offset: Int, index: Int, function: RenderFunction) {
-        switch function {
-            case .vertex:
-                setVertexBuffer(buffer, offset: offset, index: index)
-            case .fragment:
-                setFragmentBuffer(buffer, offset: offset, index: index)
-        }
-    }
-    
-    func setTexture(_ texture: MTLTexture, index: Int, function: RenderFunction) {
-        switch function {
-            case .vertex:
-                setVertexTexture(texture, index: index)
-            case .fragment:
-                setFragmentTexture(texture, index: index)
-        }
-    }
 }

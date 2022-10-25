@@ -20,7 +20,7 @@ public struct ComputePass: SKShader {
     }
     
     /// For 2D dispatches
-    public init(buffer: Buffer<MTLComputeCommandEncoder>, width: Int, pipelines: [ComputePipeline]) {
+    public init(buffer: Buffer, width: Int, pipelines: [ComputePipeline]) {
         size = { device in
             SIMD3(
                 min(width, buffer.count),

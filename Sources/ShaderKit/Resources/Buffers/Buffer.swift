@@ -7,35 +7,60 @@
 
 import MetalKit
 
-public protocol ComputeBufferConstructor {
-    var count: Int { get }
-    func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation
+public protocol BufferConstructor {
+    func construct() -> Buffer
 }
 
-extension ComputeBufferConstructor {
-    public func construct(_ description: String? = nil) -> Buffer<MTLComputeCommandEncoder> {
-        Buffer(description, self.enumerate())
-    }
-}
-
-public class Buffer<Encoder: MTLCommandEncoder> {
+public class Buffer {
     public var description: String?
     public var count: Int { representation.count }
     var representation: Representation
     
-    public init(_ description: String? = nil, _ representation: Representation) {
+    init(_ description: String? = nil, _ representation: Representation) {
         self.description = description
         self.representation = representation
     }
-    
-    public init<T>(_ description: String? = nil, _ array: [T]) {
+    // mutable
+    public init<T>(_ description: String? = nil, mutable: T, options: MTLResourceOptions? = nil) {
         self.description = description
-        representation = ArrayBuffer<Encoder>(array).enumerate()
+        representation = ArrayBuffer.mutableConstant(bytes: mutable, options: options).enumerate()
     }
     
-    public init(_ description: String? = nil, _ bytes: Bytes<Encoder>) {
+    public init<T>(_ description: String? = nil, mutable: [T], options: MTLResourceOptions? = nil) {
         self.description = description
-        representation = .bytes(bytes)
+        representation = ArrayBuffer.mutableArray(array: mutable, options: options).enumerate()
+    }
+    
+    public init<T>(_ description: String? = nil, mutable: UnsafePointer<T>, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
+        self.description = description
+        representation = ArrayBuffer(bytes: mutable, count: count, stride: MemoryLayout<T>.stride, offset: offset, options: options).enumerate()
+    }
+    
+    public init<T>(_ description: String? = nil, type: T.Type, count: Int, options: MTLResourceOptions? = nil) {
+        self.description = description
+        representation = ArrayBuffer(
+            bytes: UnsafeMutablePointer<T>.allocate(capacity: count),
+            count: count,
+            stride: MemoryLayout<T>.stride,
+            offset: 0,
+            options: options
+        ).enumerate()
+    }
+    
+    // constant
+    public init<T>(_ description: String? = nil, constant: [T]) {
+        self.description = description
+        representation = Bytes(bytes: constant).enumerate()
+    }
+    
+    public init<T>(_ description: String? = nil, constant: T) {
+        self.description = description
+        representation = Bytes(bytes: constant).enumerate()
+    }
+    
+    public init<T>(_ description: String? = nil, _ constantPointer: UnsafePointer<T>, count: Int) {
+        self.description = description
+        representation = Bytes(constantPointer, stride: MemoryLayout<T>.stride, count: count).enumerate()
     }
     
     public init(_ future: Future<(MTLBuffer, Int)>) {
@@ -48,7 +73,7 @@ public class Buffer<Encoder: MTLCommandEncoder> {
         representation = .future(Future<(MTLBuffer, Int)>(nil, future))
     }
     
-    public enum Representation {
+    enum Representation {
         var count: Int {
             switch self {
                 case let .raw(_, count): return count
@@ -57,23 +82,27 @@ public class Buffer<Encoder: MTLCommandEncoder> {
                 case let .future(future): return future.result.1
             }
         }
-        case raw(MTLBuffer, Int)
-        case constructor(ArrayBuffer<Encoder>)
-        case bytes(Bytes<Encoder>)
+        case raw(_ buffer: MTLBuffer, _ count: Int)
+        case constructor(ArrayBuffer)
+        case bytes(Bytes)
         case future(Future<(MTLBuffer, Int)>)
     }
     
-    public func copy(device: MTLDevice) -> Buffer<Encoder> {
+    public func copy(device: MTLDevice) -> Buffer {
         switch representation {
             case let .raw(buffer, count):
-                return Buffer<Encoder>(
+                return Buffer(
                     "Copy of \(description ?? "unnamed")",
                     .raw(device.makeBuffer(length: buffer.length, options: .storageModePrivate)!, count)
                 )
             default:
-                return Buffer<Encoder>("Copy of \(description ?? "unnamed")", representation)
+                return Buffer("Copy of \(description ?? "unnamed")", representation)
         }
     }
+}
+
+extension Buffer: BufferConstructor {
+    public func construct() -> Buffer { self }
 }
 
 extension Buffer: Resource {
@@ -87,168 +116,85 @@ extension Buffer: Resource {
     }
 }
 
-extension Buffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
-        representation
-    }
+struct ArrayBuffer {
+    #if os(iOS)
+    static let `default` = MTLResourceOptions.storageModeShared
+    #else
+    static let `default` = MTLResourceOptions.storageModeManaged
+    #endif
     
-    public convenience init(_ constructor: ComputeBufferConstructor) {
-        self.init(constructor.enumerate())
-    }
-    
-    public convenience init<T>(_ bytes: T) {
-        self.init(
-            nil,
-            .bytes(Bytes(bytes))
-        )
-    }
-}
-
-extension Buffer: RenderBufferConstructor where Encoder == MTLRenderCommandEncoder {
-    public func enumerate() -> Buffer<MTLRenderCommandEncoder>.Representation {
-        representation
-    }
-    
-    public convenience init(_ constructor: RenderBufferConstructor) {
-        self.init(
-            nil,
-            constructor.enumerate()
-        )
-    }
-}
-
-
-public struct ArrayBuffer<Encoder: MTLCommandEncoder> {
-    public var description: String?
-    public var count: Int
+    var description: String?
+    var count: Int
     var buffer: (MTLDevice) -> MTLBuffer?
     
-    public init<T>(_ bytes: [T]) {
-        count = bytes.count
-        buffer = { device in
-            #if os(iOS)
-            device.makeBuffer(bytes: bytes, length: MemoryLayout<T>.stride * bytes.count, options: .storageModeShared)
-            #else
-            device.makeBuffer(bytes: bytes, length: MemoryLayout<T>.stride * bytes.count, options: .storageModeManaged)
-            #endif
+    static func mutableConstant<T>(bytes: T, options: MTLResourceOptions?) -> Self {
+        return Self.mutableArray(array: [bytes], options: options)
+    }
+    
+    static func mutableArray<T>(array: [T], options: MTLResourceOptions?) -> Self {
+        if let array = array as? [Int] {
+            return Self(bytes: array.map(Int32.init(clamping:)), count: array.count, stride: MemoryLayout<Int32>.stride, options: options)
+        } else {
+            return Self(bytes: array, count: array.count, stride: MemoryLayout<T>.stride, options: options ?? `default`)
         }
     }
     
-    public init<T>(count: Int, type: T.Type) {
+    init(bytes: UnsafeRawPointer? = nil, count: Int, stride: Int, offset: Int = 0, options: MTLResourceOptions?) {
         self.count = count
         buffer = { device in
-            device.makeBuffer(length: MemoryLayout<T>.stride * count)
+            if let bytes {
+                return device.makeBuffer(bytes: bytes, length: count * stride, options: options ?? Self.default)
+            } else {
+                return device.makeBuffer(length: count * stride, options: options ?? Self.default)
+            }
         }
     }
     
-    public init<T>(bytes: [T], offset: Int = 0, count: Int) {
+    func enumerate() -> Buffer.Representation { .constructor(self) }
+}
+
+class Bytes {
+    let bytes: UnsafeRawPointer
+    let size: Int
+    let count: Int
+    
+    deinit { bytes.deallocate() }
+    
+    convenience init<T>(bytes: T) {
+        self.init(array: [bytes])
+    }
+    
+    convenience init<T>(array: [T]) {
+        if let array = array as? [Int] {
+            self.init(array.map(Int32.init(clamping:)), stride: MemoryLayout<Int32>.stride, count: array.count)
+        } else {
+            self.init(array, stride: MemoryLayout<T>.stride, count: array.count)
+        }
+    }
+    
+    init(_ bytes: UnsafeRawPointer, stride: Int, count: Int) {
+        self.bytes = bytes
+        self.size = stride * count
         self.count = count
-        buffer = { device in
-            #if os(iOS)
-            guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count, options: .storageModeShared) else {
-                return nil
-            }
-            #else
-            guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count, options: .storageModeManaged) else {
-                return nil
-            }
-            #endif
-            memcpy(buffer.contents() + offset * MemoryLayout<T>.stride, bytes, MemoryLayout<T>.stride * bytes.count)
-            return buffer
-        }
     }
     
-    public func enumerate() -> Buffer<Encoder>.Representation { .constructor(self) }
-}
-
-extension ArrayBuffer: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {}
-extension ArrayBuffer: RenderBufferConstructor where Encoder == MTLRenderCommandEncoder {}
-
-public struct Bytes<Encoder: MTLCommandEncoder> {
-    public var count: Int
-    var bytes: (Encoder, Int, RenderFunction?) -> Void
-}
-
-extension Bytes: ComputeBufferConstructor where Encoder == MTLComputeCommandEncoder {
-    public init<T: ComputeBufferConstructor>(_ array: [T]) {
-        count = array.count
-        bytes = { encoder, index, _ in
-            encoder.setBytes(array, length: MemoryLayout<T>.stride * array.count, index: index)
-        }
-    }
-    
-    public init(_ array: [Int]) {
-        count = array.count
-        bytes = { encoder, index, _ in
-            encoder.setBytes(array.map { Int32($0) }, length: MemoryLayout<Int32>.stride * array.count, index: index)
-        }
-    }
-    
-    public init<T>(_ bytes: T) {
-        count = 1
-        self.bytes = { encoder, index, _ in
-            encoder.setBytes([bytes], length: MemoryLayout<T>.stride, index: index)
-        }
-    }
-    
-    public init<T>(_ bytes: @escaping () -> T) {
-        count = 1
-        self.bytes = { encoder, index, _ in
-            encoder.setBytes([bytes()], length: MemoryLayout<T>.stride, index: index)
-        }
-    }
-    public func enumerate() -> Buffer<Encoder>.Representation { .bytes(self) }
-}
-
-extension Array where Element == Buffer<MTLComputeCommandEncoder> {
-    public mutating func encode(
-        commandBuffer: MTLCommandBuffer,
-        encoder: MTLComputeCommandEncoder
-    ) {
-        
-        for (index, buffer) in self.enumerated() {
-            switch buffer.representation {
-                case let .raw(buffer, _):
-                    encoder.setBuffer(buffer, offset: 0, index: index)
-                case let .constructor(constructor):
-                    guard let buffer = constructor.buffer(commandBuffer.device) else {
-                        fatalError("Unable to create buffer with device \(commandBuffer.device)")
-                    }
-                    encoder.setBuffer(buffer, offset: 0, index: index)
-                    self[index].representation = .raw(buffer, constructor.count)
-                case let .bytes(bytes):
-                    bytes.bytes(encoder, index, nil)
-                case .future(let future):
-                    let buffer = future.unwrap(commandBuffer: commandBuffer)
-                    self[index].representation = .raw(buffer.0, buffer.1)
-                    encoder.setBuffer(buffer.0, offset: 0, index: index)
-            }
-        }
+    func enumerate() -> Buffer.Representation {
+        .bytes(self)
     }
 }
 
-extension Array: ComputeBufferConstructor where Element: ComputeBufferConstructor {
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation {
-        .constructor(ArrayBuffer<MTLComputeCommandEncoder>(self))
+protocol ConstantBufferConstructor: BufferConstructor {}
+
+extension ConstantBufferConstructor {
+    public func construct() -> Buffer {
+        Buffer(constant: self)
     }
 }
 
-extension Int32: ComputeBufferConstructor {
-    public var count: Int { 1 }
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { .bytes(.init(self)) }
-}
+extension Int: ConstantBufferConstructor {}
+extension Int32: ConstantBufferConstructor {}
+extension Float: ConstantBufferConstructor {}
 
-extension Int: ComputeBufferConstructor {
-    public var count: Int { 1 }
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { .bytes(.init(Int32(self)))}
-}
-
-extension Float: ComputeBufferConstructor {
-    public var count: Int { 1 }
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { .bytes(.init(self)) }
-}
-
-extension Bool: ComputeBufferConstructor {
-    public var count: Int { 1 }
-    public func enumerate() -> Buffer<MTLComputeCommandEncoder>.Representation { .bytes(.init(self)) }
+extension Array: BufferConstructor {
+    public func construct() -> Buffer { Buffer(constant: self) }
 }

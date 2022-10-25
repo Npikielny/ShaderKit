@@ -10,7 +10,7 @@ import MetalKit
 public class ComputePipeline: SKShader {
     public var pipeline: Pipeline
     public var textures: [Texture]
-    public var buffers: [Buffer<MTLComputeCommandEncoder>]
+    public var buffers: [Buffer]
     
     public let threadGroupSize: MTLSize
     public var threadGroups: MTLSize?
@@ -18,7 +18,7 @@ public class ComputePipeline: SKShader {
     public init(
         pipeline: Pipeline,
         textures: [TextureConstructor] = [],
-        buffers: [ComputeBufferConstructor] = [],
+        buffers: [BufferConstructor] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {
@@ -34,7 +34,7 @@ public class ComputePipeline: SKShader {
         name: String,
         constants: MTLFunctionConstantValues? = nil,
         textures: [TextureConstructor] = [],
-        buffers: [ComputeBufferConstructor] = [],
+        buffers: [BufferConstructor] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {
@@ -50,7 +50,7 @@ public class ComputePipeline: SKShader {
     public convenience init(
         function: MTLFunction,
         textures: [TextureConstructor] = [],
-        buffers: [ComputeBufferConstructor] = [],
+        buffers: [BufferConstructor] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {
@@ -72,8 +72,9 @@ public class ComputePipeline: SKShader {
 
         let pipeline = try! pipeline.unwrap(device: device)
         commandEncoder.setComputePipelineState(pipeline)
-        textures.encode(device: device, encoder: commandEncoder)
-        buffers.encode(commandBuffer: commandBuffer, encoder: commandEncoder)
+        let wrapped = commandEncoder.wrapped
+        wrapped.setTextures(device: device, textures: textures, function: .compute)
+        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &buffers, function: .compute)
         commandEncoder.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupSize)
         commandEncoder.endEncoding()
     }

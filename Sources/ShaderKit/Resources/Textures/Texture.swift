@@ -105,26 +105,3 @@ extension String: TextureConstructor {
         LoadableTexture(path: self, options: options).construct()
     }
 }
-
-extension Array where Element == Texture {
-    public mutating func encode(
-        device: MTLDevice,
-        encoder: MTLComputeCommandEncoder
-    ) {
-        for (index, texture) in self.enumerated() {
-            let texture = texture.unwrap(device: device)
-            encoder.setTexture(texture, index: index)
-        }
-    }
-    
-    mutating func encode(
-        device: MTLDevice,
-        encoder: MTLRenderCommandEncoder,
-        function: RenderFunction
-    ) { 
-        for (index, texture) in self.enumerated() {
-            let texture = texture.unwrap(device: device)
-            encoder.setTexture(texture, index: index, function: function)
-        }
-    }
-}

@@ -58,7 +58,7 @@ public class Buffer {
         representation = Bytes(bytes: constant).enumerate()
     }
     
-    public init<T>(_ description: String? = nil, _ constantPointer: UnsafeMutablePointer<T>, count: Int) {
+    public init<T>(_ description: String? = nil, constantPointer: UnsafeMutablePointer<T>, count: Int) {
         self.description = description
         representation = Bytes(constantPointer, stride: MemoryLayout<T>.stride, count: count).enumerate()
     }

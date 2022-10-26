@@ -29,7 +29,7 @@ public struct BlitPipeline: SKShader {
         self.representation = representation
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer) {
+    public func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary) {
         guard let encoder = commandBuffer.makeBlitCommandEncoder() else {
             fatalError("Unable to make blit command encoder")
         }

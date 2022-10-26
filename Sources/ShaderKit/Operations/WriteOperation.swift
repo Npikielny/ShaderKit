@@ -88,12 +88,12 @@ public struct WriteOperation: Operation {
         }
     }
     
-    public func execute(commandQueue: MTLCommandQueue) async throws {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else {
             throw ShaderError("Unabled to make command buffer with \(commandQueue.device.name)")
         }
         
-        blit.encode(commandBuffer: commandBuffer)
+        blit.encode(commandBuffer: commandBuffer, library: library)
         
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()

@@ -8,5 +8,5 @@
 import Metal
 
 public protocol Resource {
-    func encode(commandBuffer: MTLCommandBuffer)
+    func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary)
 }

@@ -141,6 +141,7 @@ extension MTKViewRepresentable {
                 setCommandQueue(device: device)
             }
         }
+        private lazy var library: MTLLibrary? = device?.makeDefaultLibrary()
         
         var commandQueue: MTLCommandQueue?
         
@@ -161,13 +162,15 @@ extension MTKViewRepresentable {
         }
         
         public func draw(in view: MTKView) {
-            guard let commandQueue = commandQueue,
+            guard let commandQueue,
+                  let library,
                   let drawable = view.currentDrawable,
                   let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
             
             Task {
                 try await operation.execute(
                     commandQueue: commandQueue,
+                    library: library,
                     drawable: drawable,
                     renderDescriptor: renderPassDescriptor
                 )
@@ -175,12 +178,14 @@ extension MTKViewRepresentable {
         }
         
         public func asyncDraw(in view: MTKViewRepresentable) async throws {
-            guard let commandQueue = commandQueue,
+            guard let commandQueue,
+                  let library,
                   let drawable = view.currentDrawable,
                   let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
             
             try await operation.execute(
                 commandQueue: commandQueue,
+                library: library,
                 drawable: drawable,
                 renderDescriptor: renderPassDescriptor
             )
@@ -188,10 +193,12 @@ extension MTKViewRepresentable {
         
         public func asyncDraw(in view: MTKViewRepresentable, with commandQueue: MTLCommandQueue) async throws {
             guard let drawable = view.currentDrawable,
+                  let library,
                   let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
             
             try await operation.execute(
                 commandQueue: commandQueue,
+                library: library,
                 drawable: drawable,
                 renderDescriptor: renderPassDescriptor
             )

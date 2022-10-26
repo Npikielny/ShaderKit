@@ -54,30 +54,6 @@ public class RenderShader: SKShader {
     }
     
     public convenience init(
-        pipeline: RenderFunction,
-        fragment: String,
-        vertex: String,
-        vertexTextures: [TextureConstructor] = [],
-        fragmentTextures: [TextureConstructor] = [],
-        vertexBuffers: [Buffer] = [],
-        fragmentBuffers: [Buffer] = [],
-        renderPassDescriptor: RenderPassDescriptorConstructor,
-        vertexStart: Int = 0,
-        vertexCount: Int = 6
-    ) throws {
-        try self.init(
-            pipeline: pipeline,
-            vertexTextures: vertexTextures,
-            fragmentTextures: fragmentTextures,
-            vertexBuffers: vertexBuffers,
-            fragmentBuffers: fragmentBuffers,
-            renderPassDescriptor: renderPassDescriptor,
-            vertexStart: vertexStart,
-            vertexCount: vertexCount
-        )
-    }
-    
-    public convenience init(
         inTexture: TextureConstructor,
         outTexture: TextureConstructor,
         fragment: String,

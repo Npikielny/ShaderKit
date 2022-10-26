@@ -156,7 +156,7 @@ extension RenderOperation.RenderBuffer: RenderOperationConstructor {
 
 extension MTLCommandQueue {
     public func execute(
-        renderBuffer: RenderOperation,
+        renderBuffer: PresentingOperation,
         library: MTLLibrary? = nil,
         renderDescriptor: MTLRenderPassDescriptor,
         drawable: MTLDrawable

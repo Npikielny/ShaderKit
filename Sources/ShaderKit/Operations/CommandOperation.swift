@@ -110,14 +110,11 @@ extension CommandOperation {
 }
 
 extension MTLCommandQueue {
-    public func execute(commandBuffer: CommandOperation, library: MTLLibrary? = nil) async throws {
-        guard let library = library ?? device.makeDefaultLibrary() else {
-            throw ShaderError("Unable to make library")
-        }
-        try await commandBuffer.execution.execute(commandQueue: self, library: library)
+    public func execute(operation: Operation, library: MTLLibrary? = nil) async throws {
+        try await operation.execute(commandQueue: self, library: library)
     }
     
     public func execute(@CommandOperation.CommandBufferBuilder commandBuffer: () -> CommandOperation.CommandBuffer) async throws {
-        try await execute(commandBuffer: CommandOperation(commandBuffer: commandBuffer))
+        try await execute(operation: CommandOperation(commandBuffer: commandBuffer))
     }
 }

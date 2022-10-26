@@ -31,7 +31,7 @@ public class Buffer {
         representation = ArrayBuffer.mutableArray(array: mutable, options: options).enumerate()
     }
     
-    public init<T>(_ description: String? = nil, mutable: UnsafePointer<T>, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
+    public init<T>(_ description: String? = nil, mutable: UnsafeMutablePointer<T>, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
         self.description = description
         representation = ArrayBuffer(bytes: mutable, count: count, stride: MemoryLayout<T>.stride, offset: offset, options: options).enumerate()
     }
@@ -58,7 +58,7 @@ public class Buffer {
         representation = Bytes(bytes: constant).enumerate()
     }
     
-    public init<T>(_ description: String? = nil, _ constantPointer: UnsafePointer<T>, count: Int) {
+    public init<T>(_ description: String? = nil, _ constantPointer: UnsafeMutablePointer<T>, count: Int) {
         self.description = description
         representation = Bytes(constantPointer, stride: MemoryLayout<T>.stride, count: count).enumerate()
     }

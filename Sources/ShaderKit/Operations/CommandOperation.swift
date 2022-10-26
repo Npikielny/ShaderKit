@@ -111,6 +111,9 @@ extension CommandOperation {
 
 extension MTLCommandQueue {
     public func execute(operation: Operation, library: MTLLibrary? = nil) async throws {
+        guard let library = library ?? device.makeDefaultLibrary() else {
+            throw ShaderError("Unable to make default library")
+        }
         try await operation.execute(commandQueue: self, library: library)
     }
     

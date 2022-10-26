@@ -25,12 +25,12 @@ public class Future<Result>: SKShader {
         self.execution = execution
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer) {
+    public func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary) {
         self._result = execution(commandBuffer)
     }
     
-    public func unwrap(commandBuffer: MTLCommandBuffer) -> Result {
-        encode(commandBuffer: commandBuffer)
+    public func unwrap(commandBuffer: MTLCommandBuffer, library: MTLLibrary) -> Result {
+        encode(commandBuffer: commandBuffer, library: library)
         return result
     }
 }

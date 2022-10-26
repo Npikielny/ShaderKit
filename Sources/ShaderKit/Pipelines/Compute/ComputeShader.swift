@@ -7,8 +7,8 @@
 
 import MetalKit
 
-public class ComputePipeline: SKShader {
-    public var pipeline: Pipeline
+public class ComputeShader: SKShader {
+    public var pipeline: ComputeFunction
     public var textures: [Texture]
     public var buffers: [Buffer]
     
@@ -16,7 +16,7 @@ public class ComputePipeline: SKShader {
     public var threadGroups: MTLSize?
     
     public init(
-        pipeline: Pipeline,
+        pipeline: ComputeFunction,
         textures: [TextureConstructor] = [],
         buffers: [BufferConstructor] = [],
         threadGroupSize: MTLSize,
@@ -39,7 +39,7 @@ public class ComputePipeline: SKShader {
         threadGroups: MTLSize? = nil
     ) throws {
         try self.init(
-            pipeline: .constructor(name, constants),
+            pipeline: ComputeFunction(name: name, constants: constants),
             textures: textures,
             buffers: buffers,
             threadGroupSize: threadGroupSize,
@@ -47,38 +47,34 @@ public class ComputePipeline: SKShader {
         )
     }
     
-    public convenience init(
-        function: MTLFunction,
-        textures: [TextureConstructor] = [],
-        buffers: [BufferConstructor] = [],
-        threadGroupSize: MTLSize,
-        threadGroups: MTLSize? = nil
-    ) throws {
-        try self.init(
-            pipeline: .function(function),
-            textures: textures,
-            buffers: buffers,
-            threadGroupSize: threadGroupSize,
-            threadGroups: threadGroups
-        )
-    }
-    
-    public func encode(commandBuffer: MTLCommandBuffer) {
+    public func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary) {
         let device = commandBuffer.device
         guard let commandEncoder = commandBuffer.makeComputeCommandEncoder() else { fatalError("Unable to make command encoder") }
         guard let threadGroups = threadGroups else {
             fatalError("threadGroups must be set before encode time")
         }
 
-        let pipeline = try! pipeline.unwrap(device: device)
+        let (_, pipeline) = try! pipeline.unwrap(device: device, library: library)
         commandEncoder.setComputePipelineState(pipeline)
         let wrapped = commandEncoder.wrapped
         wrapped.setTextures(device: device, textures: textures, function: .compute)
-        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &buffers, function: .compute)
+        wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &buffers, function: .compute)
         commandEncoder.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupSize)
         commandEncoder.endEncoding()
     }
     
+    func copy() throws -> ComputeShader {
+        try ComputeShader(
+            pipeline: pipeline,
+            textures: textures,
+            buffers: buffers,
+            threadGroupSize: threadGroupSize,
+            threadGroups: threadGroups
+        )
+    }
+}
+
+extension ComputeShader {
     public enum Pipeline {
         case state(_ state: MTLComputePipelineState)
         case function(_ function: MTLFunction)
@@ -115,6 +111,29 @@ public class ComputePipeline: SKShader {
                     let pipeline = try Self.makePipeline(name, constants: constants, device: device)
                     self = .state(pipeline)
                     return pipeline
+            }
+        }
+    }
+    
+    public enum Dispatch {
+        case size(MTLSize)
+        case texture(Texture)
+        case buffer(buffer: Buffer, _ maxWidth: Int? = nil)
+        case future((MTLDevice) -> MTLSize)
+        
+        func getSize(device: MTLDevice) -> MTLSize {
+            switch self {
+                case let .size(size): return size
+                case let .texture(texture):
+                    let unwrapped = texture.unwrap(device: device)
+                    return MTLSize(width: unwrapped.width, height: unwrapped.height, depth: 1)
+                case let .buffer(buffer: buffer, maxWidth):
+                    if let maxWidth {
+                        return MTLSize(width: min(buffer.count, maxWidth), height: (buffer.count + maxWidth - 1) / maxWidth, depth: 1)
+                    }
+                    return MTLSize(width: buffer.count, height: 1, depth: 1)
+                case let .future(future):
+                    return future(device)
             }
         }
     }

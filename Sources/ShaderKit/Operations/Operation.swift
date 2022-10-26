@@ -8,7 +8,7 @@
 import Metal
 
 public protocol PresentingOperation {
-    func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws
+    func execute(commandQueue: MTLCommandQueue, library: MTLLibrary, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws
 }
 
 extension PresentingOperation {
@@ -18,47 +18,54 @@ extension PresentingOperation {
 }
 
 public protocol Operation: PresentingOperation {
-    func execute(commandQueue: MTLCommandQueue) async throws
+    func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws
 }
 
 extension Operation {
-    public func execute(
-        commandQueue: MTLCommandQueue,
-        drawable: MTLDrawable,
-        renderDescriptor: MTLRenderPassDescriptor
-    ) async throws {
-        try await self.execute(commandQueue: commandQueue)
+    public func execute(commandQueue: MTLCommandQueue) async throws {
+        guard let library = commandQueue.device.makeDefaultLibrary() else {
+            throw ShaderError("Unable to make default library")
+        }
+        try await execute(commandQueue: commandQueue, library: library)
+    }
+}
+
+extension Operation {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
+        try await self.execute(commandQueue: commandQueue, library: library)
     }
 }
 
 public struct Execute: Operation {
-    var execute: (MTLDevice) async throws -> Void
+    var execute: (MTLDevice, MTLLibrary) async throws -> Void
     
     public init(execute: @escaping (MTLDevice) async throws -> Void) {
-        self.execute = execute
+        self.execute = { device, _ in try await execute(device) }
     }
     
-    public func execute(commandQueue: MTLCommandQueue) async throws { try await execute(commandQueue.device) }
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
+        try await execute(commandQueue.device, library)
+    }
 }
 
 public struct FutureEncode: Operation {
-    var encode: (MTLCommandBuffer) async throws -> Void
+    var encode: (MTLCommandBuffer, MTLLibrary) async throws -> Void
     
-    public init(encode: @escaping (MTLCommandBuffer) async throws -> Void) {
+    public init(encode: @escaping (MTLCommandBuffer, MTLLibrary) async throws -> Void) {
         self.encode = encode
     }
     
     public init(futures: [Resource]) {
-        self.encode = { commandBuffer in 
+        self.encode = { commandBuffer, library in
             for future in futures {
-                future.encode(commandBuffer: commandBuffer)
+                future.encode(commandBuffer: commandBuffer, library: library)
             }
         }
     }
     
-    public func execute(commandQueue: MTLCommandQueue) async throws {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
-        try await encode(commandBuffer)
+        try await encode(commandBuffer, library)
         commandBuffer.commit()
     }
 }

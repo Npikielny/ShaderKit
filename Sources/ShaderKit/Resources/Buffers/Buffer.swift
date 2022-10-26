@@ -106,10 +106,10 @@ extension Buffer: BufferConstructor {
 }
 
 extension Buffer: Resource {
-    public func encode(commandBuffer: MTLCommandBuffer) {
+    public func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary) {
         switch representation {
             case let .future(future):
-                let result = future.unwrap(commandBuffer: commandBuffer)
+                let result = future.unwrap(commandBuffer: commandBuffer, library: library)
                 representation = .raw(result.0, result.1)
             default: return
         }

@@ -14,9 +14,9 @@ public struct OperationSequence: Operation {
         self.operations = operations
     }
     
-    public func execute(commandQueue: MTLCommandQueue) async throws {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
         for operation in operations {
-            try await operation.execute(commandQueue: commandQueue)
+            try await operation.execute(commandQueue: commandQueue, library: library)
         }
     }
 }
@@ -38,11 +38,12 @@ public struct RenderOperationSequence: PresentingOperation {
     
     public func execute(
         commandQueue: MTLCommandQueue,
+        library: MTLLibrary,
         drawable: MTLDrawable,
         renderDescriptor: MTLRenderPassDescriptor
     ) async throws {
         for operation in operations {
-            try await operation.execute(commandQueue: commandQueue, drawable: drawable, renderDescriptor: renderDescriptor)
+            try await operation.execute(commandQueue: commandQueue, library: library, drawable: drawable, renderDescriptor: renderDescriptor)
         }
     }
 }

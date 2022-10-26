@@ -23,7 +23,7 @@ extension SKConstructor {
 }
 
 public protocol SKShader: CommandOperationConstructor, RenderOperationConstructor {
-    func encode(commandBuffer: MTLCommandBuffer)
+    func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary)
 }
 
 extension SKShader {

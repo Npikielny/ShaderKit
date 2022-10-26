@@ -25,11 +25,12 @@ public class RenderOperation: PresentingOperation {
         presents = b
     }
     
-    public func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
         try await execution.execute(
             commandQueue: commandQueue,
             renderDescriptor: renderDescriptor,
             drawable: drawable,
+            library: library,
             presents: presents
         )
     }
@@ -87,15 +88,16 @@ extension RenderOperation {
         mutating private func execute(
             device: MTLDevice,
             commandBuffer: MTLCommandBuffer,
-            renderDescriptor: MTLRenderPassDescriptor
+            renderDescriptor: MTLRenderPassDescriptor,
+            library: MTLLibrary
         ) throws {
             if case let .shaders(shaders) = self {
                 for shader in shaders {
-                    if let shader = shader as? RenderPipeline {
+                    if let shader = shader as? RenderShader {
                         shader.setRenderPassDescriptor(device: device, descriptor: renderDescriptor)
-                        shader.encode(commandBuffer: commandBuffer)
+                        shader.encode(commandBuffer: commandBuffer, library: library)
                     } else {
-                        shader.encode(commandBuffer: commandBuffer)
+                        shader.encode(commandBuffer: commandBuffer, library: library)
                     }
                 }
             } else {
@@ -103,7 +105,8 @@ extension RenderOperation {
                 try execute(
                     device: device,
                     commandBuffer: commandBuffer,
-                    renderDescriptor: renderDescriptor
+                    renderDescriptor: renderDescriptor,
+                    library: library
                 )
             }
         }
@@ -112,6 +115,7 @@ extension RenderOperation {
             commandQueue: MTLCommandQueue,
             renderDescriptor: MTLRenderPassDescriptor,
             drawable: MTLDrawable,
+            library: MTLLibrary,
             presents: Bool
         ) async throws {
             guard let commandBuffer = commandQueue.makeCommandBuffer() else {
@@ -120,7 +124,8 @@ extension RenderOperation {
             try execute(
                 device: commandQueue.device,
                 commandBuffer: commandBuffer,
-                renderDescriptor: renderDescriptor
+                renderDescriptor: renderDescriptor,
+                library: library
             )
             
             if presents {
@@ -152,11 +157,16 @@ extension RenderOperation.RenderBuffer: RenderOperationConstructor {
 extension MTLCommandQueue {
     public func execute(
         renderBuffer: RenderOperation,
+        library: MTLLibrary? = nil,
         renderDescriptor: MTLRenderPassDescriptor,
         drawable: MTLDrawable
     ) async throws {
+        guard let library = library ?? device.makeDefaultLibrary() else {
+            throw ShaderError("Unable to make default library")
+        }
         try await renderBuffer.execute(
             commandQueue: self,
+            library: library,
             drawable: drawable,
             renderDescriptor: renderDescriptor
         )

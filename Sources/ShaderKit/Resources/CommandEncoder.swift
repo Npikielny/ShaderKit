@@ -11,7 +11,7 @@ enum CommandEncoder {
     case compute(_ encoder: MTLComputeCommandEncoder)
     case render(_ encoder: MTLRenderCommandEncoder)
     
-    func setBuffers(commandBuffer: MTLCommandBuffer, buffers: inout [Buffer], function: EncodingFunction) {
+    func setBuffers(commandBuffer: MTLCommandBuffer, library: MTLLibrary, buffers: inout [Buffer], function: EncodingFunction) {
         for (index, buffer) in buffers.enumerated() {
             switch buffer.representation {
                 case let .raw(buffer, _):
@@ -19,7 +19,7 @@ enum CommandEncoder {
                 case let .bytes(bytes):
                     setBytes(bytes.bytes, length: bytes.size, index: index, function: function)
                 case let .future(future):
-                    let buffer = future.unwrap(commandBuffer: commandBuffer)
+                    let buffer = future.unwrap(commandBuffer: commandBuffer, library: library)
                     buffers[index].representation = .raw(buffer.0, buffer.1)
                     setBuffer(buffer.0, offset: 0, index: index, function: function)
                 case let .constructor(constructor):

@@ -18,8 +18,8 @@ public class CommandOperation: Operation {
         self.execution = try commandBuffer()
     }
 
-    public func execute(commandQueue: MTLCommandQueue) async throws {
-        try await execution.execute(commandQueue: commandQueue)
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
+        try await execution.execute(commandQueue: commandQueue, library: library)
     }
 }
 
@@ -72,22 +72,22 @@ extension CommandOperation {
             self = .shaders(try concatenate(device: device))
         }
 
-        mutating private func execute(device: MTLDevice, commandBuffer: MTLCommandBuffer) throws {
+        mutating private func execute(device: MTLDevice, library: MTLLibrary, commandBuffer: MTLCommandBuffer) throws {
             if case let .shaders(shaders) = self {
                 for index in 0..<shaders.count {
-                    shaders[index].encode(commandBuffer: commandBuffer)
+                    shaders[index].encode(commandBuffer: commandBuffer, library: library)
                 }
             } else {
                 try initialize(device: device)
-                try execute(device: device, commandBuffer: commandBuffer)
+                try execute(device: device, library: library, commandBuffer: commandBuffer)
             }
         }
 
-        mutating func execute(commandQueue: MTLCommandQueue) async throws {
+        mutating func execute(commandQueue: MTLCommandQueue, library: MTLLibrary) async throws {
             guard let commandBuffer = commandQueue.makeCommandBuffer() else {
                 throw ShaderError("Unabled to make command buffer with \(commandQueue.device.name)")
             }
-            try execute(device: commandQueue.device, commandBuffer: commandBuffer)
+            try execute(device: commandQueue.device, library: library, commandBuffer: commandBuffer)
             commandBuffer.commit()
             commandBuffer.waitUntilCompleted()
         }
@@ -110,8 +110,11 @@ extension CommandOperation {
 }
 
 extension MTLCommandQueue {
-    public func execute(commandBuffer: CommandOperation) async throws {
-        try await commandBuffer.execution.execute(commandQueue: self)
+    public func execute(commandBuffer: CommandOperation, library: MTLLibrary? = nil) async throws {
+        guard let library = library ?? device.makeDefaultLibrary() else {
+            throw ShaderError("Unable to make library")
+        }
+        try await commandBuffer.execution.execute(commandQueue: self, library: library)
     }
     
     public func execute(@CommandOperation.CommandBufferBuilder commandBuffer: () -> CommandOperation.CommandBuffer) async throws {

@@ -13,8 +13,8 @@ enum EncodingFunction {
     case fragment
 }
 
-public class RenderPipeline: SKShader {
-    private var pipeline: Pipeline
+public class RenderShader: SKShader {
+    private var pipeline: RenderFunction
     public var vertexTextures: [Texture]
     public var fragmentTextures: [Texture]
     public var vertexBuffers: [Buffer]
@@ -27,7 +27,7 @@ public class RenderPipeline: SKShader {
     private var vertexCount: Int
     
     public init(
-        pipeline: Pipeline,
+        pipeline: RenderFunction,
         vertexTextures: [TextureConstructor] = [],
         fragmentTextures: [TextureConstructor] = [],
         vertexBuffers: [Buffer] = [],
@@ -54,7 +54,7 @@ public class RenderPipeline: SKShader {
     }
     
     public convenience init(
-        pipelineConstructor: RenderPipelineDescriptorConstructor,
+        pipeline: RenderFunction,
         fragment: String,
         vertex: String,
         vertexTextures: [TextureConstructor] = [],
@@ -66,7 +66,7 @@ public class RenderPipeline: SKShader {
         vertexCount: Int = 6
     ) throws {
         try self.init(
-            pipeline: .constructors(vertex, fragment, pipelineConstructor),
+            pipeline: pipeline,
             vertexTextures: vertexTextures,
             fragmentTextures: fragmentTextures,
             vertexBuffers: vertexBuffers,
@@ -88,7 +88,7 @@ public class RenderPipeline: SKShader {
         let outTexture = outTexture.construct()
         
         try self.init(
-            pipeline: .constructors(vertex, fragment, RenderPipelineDescriptor.texture(outTexture)),
+            pipeline: RenderFunction(vertex: vertex, fragment: fragment, destination: outTexture),
             fragmentTextures: [inTexture],
             renderPassDescriptor: RenderPassDescriptor.future { device in
                 let descriptor = MTLRenderPassDescriptor()
@@ -128,7 +128,7 @@ public class RenderPipeline: SKShader {
         }
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer) {
+    public func encode(commandBuffer: MTLCommandBuffer, library: MTLLibrary) {
         if workingDescriptor == nil {
             attemptBypassDrawable(device: commandBuffer.device)
         }
@@ -139,7 +139,7 @@ Working descriptor not set. This is due to using a `CommandBuffer` instead of a 
 """
             )
         }
-
+        
         guard let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: workingDescriptor) else {
             fatalError(
 """
@@ -148,93 +148,31 @@ Unabled to make render encoder \(pipeline.description)
             )
         }
         let device = commandBuffer.device
-        let pipeline = try! pipeline.unwrap(device: device)
+        let (_, pipeline) = try! pipeline.unwrap(device: device, library: library)
         
         renderEncoder.setRenderPipelineState(pipeline)
         let wrapped = renderEncoder.wrapped
         
         wrapped.setTextures(device: device, textures: fragmentTextures, function: .fragment)
         wrapped.setTextures(device: device, textures: vertexTextures, function: .vertex)
-        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &fragmentBuffers, function: .fragment)
-        wrapped.setBuffers(commandBuffer: commandBuffer, buffers: &vertexBuffers, function: .vertex)
+        wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &fragmentBuffers, function: .fragment)
+        wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &vertexBuffers, function: .vertex)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: vertexCount)
         renderEncoder.endEncoding()
     }
     
-    public enum Pipeline {
-        case state(_ state: MTLRenderPipelineState, _ description: String)
-        case functions(_ vertex: MTLFunction, _ fragment: MTLFunction, _ description: String, _ format: RenderPipelineDescriptorConstructor)
-        case constructors(_ vertex: String, _ fragment: String, _ format: RenderPipelineDescriptorConstructor)
-        
-        var description: String {
-            switch self {
-                case let .state(_, description): return description
-                case let .functions(_, _, description, _): return description
-                case let .constructors(vertex, fragment, _): return "(\(vertex), \(fragment))"
-            }
-        }
-        
-        static func makePipeline(
-            vertex: String,
-            fragment: String,
-            format: RenderPipelineDescriptorConstructor,
-            device: MTLDevice
-        ) throws -> MTLRenderPipelineState {
-            guard let library = device.makeDefaultLibrary() else { fatalError("Device \(device) unable to make compile shaders") }
-            guard let vertex = library.makeFunction(name: vertex) else { fatalError("Unable to make function \(vertex)") }
-            guard let fragment = library.makeFunction(name: fragment) else { fatalError("Unable to make function \(fragment)") }
-            
-            
-            return try makePipeline(vertex: vertex, fragment: fragment, format: format, device: device)
-        }
-        
-        static func makePipeline(
-            vertex: MTLFunction,
-            fragment: MTLFunction,
-            format: RenderPipelineDescriptorConstructor,
-            device: MTLDevice
-        ) throws -> MTLRenderPipelineState {
-            let descriptor = MTLRenderPipelineDescriptor()
-            descriptor.vertexFunction = vertex
-            descriptor.fragmentFunction = fragment
-            
-            switch format.construct() {
-                case let .pixelFormat(format):
-                    descriptor.colorAttachments[0].pixelFormat = format
-                case let .texture(texture):
-                    descriptor.colorAttachments[0].pixelFormat = texture.unwrap(device: device).pixelFormat
-            }
-            
-            
-            return try device.makeRenderPipelineState(descriptor: descriptor)
-        }
-        
-        mutating func unwrap(device: MTLDevice) throws -> MTLRenderPipelineState {
-            switch self {
-                case let .state(state, _):
-                    return state
-                case let .functions(vertex, fragment, description, format):
-                    let pipeline = try Self.makePipeline(
-                        vertex: vertex,
-                        fragment: fragment,
-                        format: format,
-                        device: device
-                    )
-                    self = .state(pipeline, description)
-                    return pipeline
-                case let .constructors(vertex, fragment, format):
-                    let pipeline = try Self.makePipeline(
-                        vertex: vertex,
-                        fragment: fragment,
-                        format: format,
-                        device: device
-                    )
-                    self = .state(pipeline, "(\(vertex), \(fragment))")
-                    return pipeline
-            }
-        }
+    public func copy(replacing newFragmentTextures: [Texture]? = nil) throws -> RenderShader {
+        try RenderShader(
+            pipeline: pipeline,
+            vertexTextures: vertexTextures,
+            fragmentTextures: fragmentTextures,
+            vertexBuffers: vertexBuffers,
+            fragmentBuffers: fragmentBuffers,
+            renderPassDescriptor: renderPassDescriptor,
+            vertexStart: vertexStart,
+            vertexCount: vertexCount
+        )
     }
-    
 }
 
 // MARK: Pipeline Descriptor

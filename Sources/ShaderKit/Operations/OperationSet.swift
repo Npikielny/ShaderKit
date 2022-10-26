@@ -22,9 +22,14 @@ public struct RenderOperationSet: PresentingOperation {
         self.operations = operations
     }
     
-    public func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
+    public func execute(
+        commandQueue: MTLCommandQueue,
+        library: MTLLibrary,
+        drawable: MTLDrawable,
+        renderDescriptor: MTLRenderPassDescriptor
+    ) async throws {
         for operation in operations {
-            try await operation.execute(commandQueue: commandQueue, drawable: drawable, renderDescriptor: renderDescriptor)
+            try await operation.execute(commandQueue: commandQueue, library: library, drawable: drawable, renderDescriptor: renderDescriptor)
         }
     }
 }
@@ -55,7 +60,7 @@ public struct CommandOperationSet: PresentingOperation {
         self.operations = operations
     }
     
-    public func execute(commandQueue: MTLCommandQueue, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
+    public func execute(commandQueue: MTLCommandQueue, library: MTLLibrary, drawable: MTLDrawable, renderDescriptor: MTLRenderPassDescriptor) async throws {
         for operation in operations {
             try await operation.execute(commandQueue: commandQueue)
         }

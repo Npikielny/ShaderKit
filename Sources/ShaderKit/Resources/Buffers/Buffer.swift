@@ -31,6 +31,17 @@ public class Buffer {
         representation = ArrayBuffer.mutableArray(array: mutable, options: options).enumerate()
     }
     
+    public init<T>(_ description: String? = nil, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
+        self.description = description
+        representation = .future(Future<(MTLBuffer, Int)> { commandBuffer in
+            guard let buffer = commandBuffer.device.makeBuffer(length: MemoryLayout<T>.stride * count + offset) else {
+                fatalError("Unabled to make new buffer–probably not enough memory...")
+            }
+            
+            return (buffer, count)
+        })
+    }
+    
     public init<T>(_ description: String? = nil, mutable: UnsafeMutablePointer<T>, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
         self.description = description
         representation = ArrayBuffer(bytes: mutable, count: count, stride: MemoryLayout<T>.stride, offset: offset, options: options).enumerate()
@@ -50,7 +61,7 @@ public class Buffer {
     // constant
     public init<T>(_ description: String? = nil, constant: [T]) {
         self.description = description
-        representation = Bytes(bytes: constant).enumerate()
+        representation = Bytes(array: constant).enumerate()
     }
     
     public init<T>(_ description: String? = nil, constant: T) {
@@ -97,6 +108,27 @@ public class Buffer {
                 )
             default:
                 return Buffer("Copy of \(description ?? "unnamed")", representation)
+        }
+    }
+    
+    public func copyBytes(device: MTLDevice, bytes: UnsafeRawPointer, start: Int = 0, end: Int? = nil) {
+        switch representation {
+            case let .raw(buffer, _):
+                let end = end ?? buffer.length
+                memcpy(buffer.contents(), bytes, end - start)
+                #if !os(iOS)
+                if buffer.storageMode == .managed {
+                    buffer.didModifyRange(start..<end)
+                }
+                #endif
+            case let .constructor(array):
+                guard let buffer = array.buffer(device) else {
+                    fatalError("Unable to create buffer with device \(device)")
+                }
+                representation = .raw(buffer, array.count)
+                copyBytes(device: device, bytes: bytes, start: start, end: end)
+            default:
+                fatalError("Unable to edit buffer because it is static or hasn't been created yet")
         }
     }
 }

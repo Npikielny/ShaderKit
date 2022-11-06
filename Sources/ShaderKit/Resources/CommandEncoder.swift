@@ -17,7 +17,7 @@ enum CommandEncoder {
                 case let .raw(buffer, _):
                     setBuffer(buffer, offset: 0, index: index, function: function)
                 case let .bytes(bytes):
-                    setBytes(bytes.bytes, length: bytes.size, index: index, function: function)
+                    setBytes(bytes.bytes, length: bytes.stride * bytes.count, index: index, function: function)
                 case let .future(future):
                     let buffer = future.unwrap(device: commandBuffer.device)
                     buffers[index].representation = .raw(buffer.0, buffer.1)

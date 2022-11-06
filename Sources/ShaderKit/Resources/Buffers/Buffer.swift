@@ -28,7 +28,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
         self.init(description) { commandBuffer in
             guard let buffer = commandBuffer.device.makeBuffer(
                 bytes: mutable.bytes,
-                length: mutable.size * mutable.count,
+                length: mutable.stride * mutable.count,
                 options: options ?? Self.default
             )
             else { fatalError("Unabled to make new buffer–probably not enough memory...") }
@@ -42,7 +42,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
                 fatalError("Unabled to make new buffer–probably not enough memory...")
             }
             if let mutable {
-                memcpy(buffer.contents() + offset, mutable.bytes, mutable.size * mutable.count)
+                memcpy(buffer.contents() + offset, mutable.bytes, mutable.stride * mutable.count)
             }
             
             return (buffer, count)
@@ -173,7 +173,7 @@ public protocol Bytes {
 
 extension Bytes {
     var count: Int { bytes.count }
-    var size: Int { MemoryLayout<GPUElement>.stride }
+    var stride: Int { MemoryLayout<GPUElement>.stride }
 }
 extension Array: Bytes where Element: GPUEncodable {
     public typealias GPUElement = Element.GPUElement

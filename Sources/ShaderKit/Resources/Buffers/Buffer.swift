@@ -42,20 +42,9 @@ public class Buffer {
         })
     }
     
-    public init<T>(_ description: String? = nil, mutable: UnsafeMutablePointer<T>, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
-        self.description = description
-        representation = ArrayBuffer(bytes: mutable, count: count, stride: MemoryLayout<T>.stride, offset: offset, options: options).enumerate()
-    }
-    
     public init<T>(_ description: String? = nil, type: T.Type, count: Int, options: MTLResourceOptions? = nil) {
         self.description = description
-        representation = ArrayBuffer(
-            bytes: UnsafeMutablePointer<T>.allocate(capacity: count),
-            count: count,
-            stride: MemoryLayout<T>.stride,
-            offset: 0,
-            options: options
-        ).enumerate()
+        representation = ArrayBuffer(bytes: Optional<[T]>.none, count: count, options: options).enumerate()
     }
     
     // constant
@@ -165,19 +154,41 @@ struct ArrayBuffer {
     
     static func mutableArray<T>(array: [T], options: MTLResourceOptions?) -> Self {
         if let array = array as? [Int] {
-            return Self(bytes: array.map(Int32.init(clamping:)), count: array.count, stride: MemoryLayout<Int32>.stride, options: options)
+            return Self(bytes: array.map(Int32.init(clamping:)), count: array.count, options: options)
         } else {
-            return Self(bytes: array, count: array.count, stride: MemoryLayout<T>.stride, options: options ?? `default`)
+            return Self(bytes: array, count: array.count, options: options ?? `default`)
         }
     }
     
-    init(bytes: UnsafeRawPointer? = nil, count: Int, stride: Int, offset: Int = 0, options: MTLResourceOptions?) {
+    static func mutableArray<T>(startingBytes: [T]? = nil, type: T.Type, count: Int, options: MTLResourceOptions?) -> Self {
+        if let startingBytes = startingBytes as? [Int] {
+            return Self(bytes: startingBytes.map(Int32.init(clamping:)), count: count, options: options)
+        } else {
+            return Self(bytes: startingBytes, count: count, options: options ?? `default`)
+        }
+    }
+    
+    init<T>(bytes: [T]?, count: Int, offset: Int = 0, options: MTLResourceOptions?) {
         self.count = count
-        buffer = { device in
-            if let bytes {
-                return device.makeBuffer(bytes: bytes, length: count * stride, options: options ?? Self.default)
+        
+        if let bytes {
+            if count == bytes.count {
+                buffer = { device in
+                    device.makeBuffer(bytes: bytes, length: MemoryLayout<T>.stride * count, options: options ?? Self.default)
+                }
             } else {
-                return device.makeBuffer(length: count * stride, options: options ?? Self.default)
+                buffer = { device in
+                    guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count, options: options ?? Self.default)
+                    else { return nil }
+                    let length = MemoryLayout<T>.stride * bytes.count
+                    memcpy(buffer.contents(), bytes, length)
+                    buffer.didModifyRange(0..<length)
+                    return buffer
+                }
+            }
+        } else {
+            buffer = { device in
+                device.makeBuffer(length: MemoryLayout<T>.stride * count, options: options ?? Self.default)
             }
         }
     }

@@ -18,12 +18,12 @@ public class ComputeShader: SKShader {
     public init(
         pipeline: ComputeFunction,
         textures: [TextureConstructor] = [],
-        buffers: [BufferConstructor] = [],
+        buffers: [Buffer] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {
         self.textures = textures.map { $0.construct() }
-        self.buffers = buffers.map { $0.construct() }
+        self.buffers = buffers
         self.pipeline = pipeline
         
         self.threadGroups = threadGroups
@@ -34,7 +34,7 @@ public class ComputeShader: SKShader {
         name: String,
         constants: MTLFunctionConstantValues? = nil,
         textures: [TextureConstructor] = [],
-        buffers: [BufferConstructor] = [],
+        buffers: [Buffer] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
     ) throws {

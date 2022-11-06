@@ -38,17 +38,16 @@ extension Buffer {
         switch self.representation {
             case let .raw(buffer, count):
                 return buffer.bytes(to: to, count: count)
-            case let .constructor(array):
-                guard let buffer = array.buffer(device) else {
-                    fatalError("Unable to create buffer with device \(device)")
-                }
-                representation = .raw(buffer, array.count)
-                return buffer.bytes(to: to, count: array.count)
-            case .bytes(_):
-                fatalError("Cannot unwrap constant/static resources")
+            case let .pointer(pointer, _, count):
+                let mutablePointer = UnsafeMutablePointer(mutating: pointer.bindMemory(to: T.self, capacity: count))
+                return RawPointer(mutablePointer)
             case let .future(future):
                 let result = future.result
                 return result.0.bytes(to: to, count: result.1)
+            case .bytes(_):
+                fatalError("Cannot unwrap constant/static resources")
+            case .encodedFuture(_):
+                fatalError("Can't unwrap encoded futures–any chance you don't need a command buffer to create this?")
         }
     }
 }

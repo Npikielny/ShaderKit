@@ -19,15 +19,15 @@ enum CommandEncoder {
                 case let .bytes(bytes):
                     setBytes(bytes.bytes, length: bytes.size, index: index, function: function)
                 case let .future(future):
+                    let buffer = future.unwrap(device: commandBuffer.device)
+                    buffers[index].representation = .raw(buffer.0, buffer.1)
+                    setBuffer(buffer.0, offset: 0, index: index, function: function)
+                case let .encodedFuture(future):
                     let buffer = future.unwrap(commandBuffer: commandBuffer, library: library)
                     buffers[index].representation = .raw(buffer.0, buffer.1)
                     setBuffer(buffer.0, offset: 0, index: index, function: function)
-                case let .constructor(constructor):
-                    guard let buffer = constructor.buffer(commandBuffer.device) else {
-                        fatalError("Unable to create buffer with device \(commandBuffer.device)")
-                    }
-                    setBuffer(buffer, offset: 0, index: index, function: function)
-                    buffers[index].representation = .raw(buffer, constructor.count)
+                case let .pointer(pointer, stride, count):
+                    setBytes(pointer, length: stride * count, index: index, function: function)
             }
         }
     }

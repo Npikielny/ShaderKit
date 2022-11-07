@@ -174,6 +174,7 @@ public protocol Bytes {
 extension Bytes {
     var count: Int { bytes.count }
     var stride: Int { MemoryLayout<GPUElement>.stride }
+    var length: Int { stride * count }
 }
 extension Array: Bytes where Element: GPUEncodable {
     public typealias GPUElement = Element.GPUElement

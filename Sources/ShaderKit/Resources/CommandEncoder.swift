@@ -17,7 +17,7 @@ enum CommandEncoder {
                 case let .raw(buffer, _):
                     setBuffer(buffer, offset: 0, index: index, function: function)
                 case let .bytes(bytes):
-                    setBytes(bytes.bytes, length: bytes.stride * bytes.count, index: index, function: function)
+                    setBytes(bytes, index: index, function: function)
                 case let .future(future):
                     let buffer = future.unwrap(device: commandBuffer.device)
                     buffers[index].representation = .raw(buffer.0, buffer.1)
@@ -31,6 +31,7 @@ enum CommandEncoder {
             }
         }
     }
+    
     func setBuffer(_ buffer: MTLBuffer, offset: Int, index: Int, function: EncodingFunction) {
         switch self {
             case .compute(let encoder):
@@ -43,6 +44,19 @@ enum CommandEncoder {
                 }
         }
     }
+    
+    func setBytes(_ bytes: any Bytes, index: Int, function: EncodingFunction) {
+        switch self {
+            case let .compute(encoder): encoder.setBytes(bytes.bytes, length: bytes.length, index: index)
+            case let .render(encoder):
+                switch function {
+                    case .compute: fatalError()
+                    case .vertex: encoder.setVertexBytes(bytes.bytes, length: bytes.length, index: index)
+                    case .fragment: encoder.setFragmentBytes(bytes.bytes, length: bytes.length, index: index)
+                }
+        }
+    }
+    
     func setBytes(_ bytes: UnsafeRawPointer, length: Int, index: Int, function: EncodingFunction) {
         switch self {
             case let .compute(encoder): encoder.setBytes(bytes, length: length, index: index)

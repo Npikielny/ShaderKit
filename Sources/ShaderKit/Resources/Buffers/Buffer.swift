@@ -24,7 +24,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
     }
     
     // mutable
-    public convenience init(_ description: String? = nil, mutable: any Bytes, options: MTLResourceOptions? = nil) {
+    public convenience init(_ description: String? = nil, mutable: some Bytes, options: MTLResourceOptions? = nil) {
         self.init(description) { commandBuffer in
             guard let buffer = commandBuffer.device.makeBuffer(
                 bytes: mutable.bytes,
@@ -36,7 +36,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
         }
     }
     
-    public convenience init<T>(_ description: String? = nil, mutable: (any Bytes)?, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
+    public convenience init<T: Bytes>(_ description: String? = nil, mutable: T?, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
         self.init(description) { commandBuffer in
             guard let buffer = commandBuffer.device.makeBuffer(length: MemoryLayout<T>.stride * count + offset) else {
                 fatalError("Unabled to make new buffer–probably not enough memory...")
@@ -70,7 +70,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
     }
     
     // constant
-    public init(_ description: String? = nil, constant: any Bytes) {
+    public init(_ description: String? = nil, constant: some Bytes) {
         self.description = description
         representation = .bytes(constant)
     }
@@ -176,6 +176,7 @@ extension Bytes {
     var stride: Int { MemoryLayout<GPUElement>.stride }
     var length: Int { stride * count }
 }
+
 extension Array: Bytes where Element: GPUEncodable {
     public typealias GPUElement = Element.GPUElement
     

@@ -45,7 +45,7 @@ enum CommandEncoder {
         }
     }
     
-    func setBytes(_ bytes: any Bytes, index: Int, function: EncodingFunction) {
+    func setBytes(_ bytes: some Bytes, index: Int, function: EncodingFunction) {
         switch self {
             case let .compute(encoder): encoder.setBytes(bytes.bytes, length: bytes.length, index: index)
             case let .render(encoder):

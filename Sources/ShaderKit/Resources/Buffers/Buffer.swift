@@ -113,6 +113,10 @@ static let `default` = MTLResourceOptions.storageModeManaged
 //        }
 //    }
     
+    public func copy(from: Buffer) {
+        self.representation = from.representation
+    }
+    
     public func unwrap(device: MTLDevice) -> MTLBuffer {
         switch self.representation {
             case let .raw(buffer, _):

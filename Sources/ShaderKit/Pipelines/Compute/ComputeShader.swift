@@ -57,7 +57,7 @@ public class ComputeShader: SKShader {
             let (_, pipeline) = try pipeline.unwrap(device: device, library: library)
             commandEncoder.setComputePipelineState(pipeline)
         } catch {
-            print(error)
+            print("Compilation error: ", error.localizedDescription)
             fatalError()
         }
         

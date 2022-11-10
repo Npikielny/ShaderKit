@@ -129,7 +129,7 @@ Unabled to make render encoder \(pipeline.description)
             
             renderEncoder.setRenderPipelineState(pipeline)
         } catch {
-            print(error)
+            print("Compilation error: ", error.localizedDescription)
             fatalError()
         }
         let wrapped = renderEncoder.wrapped

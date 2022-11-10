@@ -73,14 +73,16 @@ public final class RenderFunction: Pipeline {
             library: library,
             name: constructor.vertex,
             constants: nil
-        ),
-              let fragment = try Self.makeFunction(
+        ) else {
+            throw ShaderError("Unable to make vertex shader of \(constructor)")
+        }
+        guard let fragment = try Self.makeFunction(
                 device: device,
                 library: library,
                 name: constructor.fragment,
                 constants: nil
               ) else {
-            throw ShaderError("Unable to make functions \(constructor)")
+            throw ShaderError("Unable to make fragment shader of \(constructor)")
         }
         
         descriptor.vertexFunction = vertex

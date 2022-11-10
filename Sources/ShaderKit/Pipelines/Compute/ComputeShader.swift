@@ -21,7 +21,7 @@ public class ComputeShader: SKShader {
         buffers: [Buffer] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
-    ) throws {
+    ) {
         self.textures = textures.map { $0.construct() }
         self.buffers = buffers
         self.pipeline = pipeline
@@ -37,8 +37,8 @@ public class ComputeShader: SKShader {
         buffers: [Buffer] = [],
         threadGroupSize: MTLSize,
         threadGroups: MTLSize? = nil
-    ) throws {
-        try self.init(
+    ) {
+        self.init(
             pipeline: ComputeFunction(name: name, constants: constants),
             textures: textures,
             buffers: buffers,
@@ -68,8 +68,8 @@ public class ComputeShader: SKShader {
         commandEncoder.endEncoding()
     }
     
-    func copy() throws -> ComputeShader {
-        try ComputeShader(
+    func copy() -> ComputeShader {
+        ComputeShader(
             pipeline: pipeline,
             textures: textures,
             buffers: buffers,

@@ -35,7 +35,7 @@ public class RenderShader: SKShader {
         renderPassDescriptor: RenderPassDescriptorConstructor,
         vertexStart: Int = 0,
         vertexCount: Int = 6
-    ) throws {
+    ) {
         self.pipeline = pipeline
         
         self.fragmentTextures = fragmentTextures.map { $0.construct() }
@@ -60,10 +60,10 @@ public class RenderShader: SKShader {
         vertex: String,
         vertexStart: Int = 0,
         vertexCount: Int = 6
-    ) throws {
+    ) {
         let outTexture = outTexture.construct()
         
-        try self.init(
+        self.init(
             pipeline: RenderFunction(vertex: vertex, fragment: fragment, destination: outTexture),
             fragmentTextures: [inTexture],
             renderPassDescriptor: RenderPassDescriptor.future { device in
@@ -142,8 +142,8 @@ Unabled to make render encoder \(pipeline.description)
         renderEncoder.endEncoding()
     }
     
-    public func copy(replacing newFragmentTextures: [Texture]? = nil) throws -> RenderShader {
-        try RenderShader(
+    public func copy(replacing newFragmentTextures: [Texture]? = nil) -> RenderShader {
+        RenderShader(
             pipeline: pipeline,
             vertexTextures: vertexTextures,
             fragmentTextures: fragmentTextures,

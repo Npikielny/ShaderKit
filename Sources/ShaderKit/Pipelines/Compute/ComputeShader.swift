@@ -53,9 +53,14 @@ public class ComputeShader: SKShader {
         guard let threadGroups = threadGroups else {
             fatalError("threadGroups must be set before encode time")
         }
-
-        let (_, pipeline) = try! pipeline.unwrap(device: device, library: library)
-        commandEncoder.setComputePipelineState(pipeline)
+        do {
+            let (_, pipeline) = try pipeline.unwrap(device: device, library: library)
+            commandEncoder.setComputePipelineState(pipeline)
+        } catch {
+            print(error)
+            fatalError()
+        }
+        
         let wrapped = commandEncoder.wrapped
         wrapped.setTextures(device: device, textures: textures, function: .compute)
         wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &buffers, function: .compute)

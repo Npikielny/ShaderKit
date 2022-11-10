@@ -36,7 +36,7 @@ static let `default` = MTLResourceOptions.storageModeManaged
         }
     }
     
-    public convenience init<T: Bytes>(_ description: String? = nil, mutable: T?, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
+    public convenience init<T: Bytes>(_ description: String? = nil, mutable: T? = nil, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
         self.init(description) { commandBuffer in
             guard let buffer = commandBuffer.device.makeBuffer(length: MemoryLayout<T>.stride * count + offset) else {
                 fatalError("Unabled to make new buffer–probably not enough memory...")
@@ -208,3 +208,4 @@ extension Int: Bytes {
 }
 extension Int32: GPUEncodable {}
 extension Float: GPUEncodable {}
+extension Bool: GPUEncodable {}

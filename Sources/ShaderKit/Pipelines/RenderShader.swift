@@ -124,9 +124,14 @@ Unabled to make render encoder \(pipeline.description)
             )
         }
         let device = commandBuffer.device
-        let (_, pipeline) = try! pipeline.unwrap(device: device, library: library)
-        
-        renderEncoder.setRenderPipelineState(pipeline)
+        do {
+            let (_, pipeline) = try pipeline.unwrap(device: device, library: library)
+            
+            renderEncoder.setRenderPipelineState(pipeline)
+        } catch {
+            print(error)
+            fatalError()
+        }
         let wrapped = renderEncoder.wrapped
         
         wrapped.setTextures(device: device, textures: fragmentTextures, function: .fragment)

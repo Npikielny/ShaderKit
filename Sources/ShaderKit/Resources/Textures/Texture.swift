@@ -21,6 +21,7 @@ extension TextureConstructor {
 
 public class Texture: TextureConstructor {
     public var description: String?
+    public var virtualSRGB = false
     var representation: Representation
     
     public init(_ constructor: TextureConstructor) {
@@ -29,6 +30,12 @@ public class Texture: TextureConstructor {
     
     public init(_ texture: MTLTexture) {
         representation = .raw(texture)
+    }
+    
+    public init?(_ texture: MTLTexture?, _ virtualSRGB: Bool = false) {
+        guard let texture else { return nil }
+        representation = .raw(texture)
+        self.virtualSRGB = virtualSRGB
     }
     
     public func enumerate() -> Representation {

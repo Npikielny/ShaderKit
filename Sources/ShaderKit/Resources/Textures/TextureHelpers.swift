@@ -54,15 +54,19 @@ extension TextureConstructor {
         storageMode: MTLStorageMode,
         usage: MTLTextureUsage
     ) -> Texture {
-        OptionalTextureConstructorFuture(name) { device -> MTLTexture? in
+        OptionalTextureConstructorFuture(name) { device -> Texture? in
             let descriptor = MTLTextureDescriptor()
+            
+            var virtualSRGB = false
             
             if pixelFormat == .rgba8Unorm_srgb &&
                 (usage.contains(.shaderWrite)) {
                 descriptor.pixelFormat = .rgba8Unorm
+                virtualSRGB = true
             } else if pixelFormat == .bgra8Unorm_srgb &&
                         (usage.contains(.shaderWrite))  {
                 descriptor.pixelFormat = .bgra8Unorm
+                virtualSRGB = true
             } else {
                 descriptor.pixelFormat = pixelFormat
             }
@@ -74,7 +78,7 @@ extension TextureConstructor {
             descriptor.height = height
             descriptor.storageMode = storageMode
             descriptor.usage = usage
-            return device.makeTexture(descriptor: descriptor)
+            return Texture(device.makeTexture(descriptor: descriptor), virtualSRGB)
         }.construct()
     }
     

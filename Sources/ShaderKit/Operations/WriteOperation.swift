@@ -41,8 +41,7 @@ public struct WriteOperation: Operation {
         unwrapped.getBytes(ptr, bytesPerRow: bytesPerRow, from: region, mipmapLevel: 0)
         
         
-        let isSRGB = [.bgra8Unorm_srgb, .r8Unorm_srgb, .rg8Unorm_srgb, .rgba8Unorm_srgb].contains(unwrapped.pixelFormat)
-        let colorSpace = isSRGB ? CGColorSpace(name: CGColorSpace.sRGB)! : CGColorSpaceCreateDeviceRGB()
+        let colorSpace = (texture.virtualSRGB || MTLPixelFormat.srgbFormats.contains(unwrapped.pixelFormat)) ? CGColorSpace(name: CGColorSpace.sRGB)! : CGColorSpaceCreateDeviceRGB()
         
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
         

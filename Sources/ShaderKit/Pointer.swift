@@ -133,5 +133,13 @@ extension MTLPixelFormat {
         }
     }
     
+    public static var srgbFormats: [MTLPixelFormat] {
+        if #available(macOS 11.0, *) {
+            return [.bgra8Unorm_srgb, .r8Unorm_srgb, .rg8Unorm_srgb, .rgba8Unorm_srgb]
+        } else {
+            return [.bgra8Unorm_srgb, .rgba8Unorm_srgb]
+        }
+    }
+    
     
 }

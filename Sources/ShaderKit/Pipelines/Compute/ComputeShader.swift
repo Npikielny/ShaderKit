@@ -68,7 +68,7 @@ public class ComputeShader: SKShader {
         commandEncoder.endEncoding()
     }
     
-    func copy() -> ComputeShader {
+    public func copy() -> ComputeShader {
         ComputeShader(
             pipeline: pipeline,
             textures: textures,

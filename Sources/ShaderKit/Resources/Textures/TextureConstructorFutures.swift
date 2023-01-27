@@ -50,6 +50,7 @@ public struct LoadableTexture: TextureConstructor {
     public typealias OptionSet = [MTKTextureLoader.Option : Any]
     public init(path: String, options: OptionSet? = nil) {
         self.path = path
+        self.options = options
     }
     
     public var path: String

@@ -48,13 +48,14 @@ public struct OptionalTextureConstructorFuture: TextureConstructor {
 
 public struct LoadableTexture: TextureConstructor {
     public typealias OptionSet = [MTKTextureLoader.Option : Any]
+    public static var defaultOptions: OptionSet? = nil
     public init(path: String, options: OptionSet? = nil) {
         self.path = path
-        self.options = options
+        self.options = options ?? Self.defaultOptions
     }
     
     public var path: String
-    public var options: OptionSet?
+    public var options: OptionSet? = Self.defaultOptions
     public var description: String? { "Loading texture from \(path)" }
     
     public func texture(device: MTLDevice) -> MTLTexture {

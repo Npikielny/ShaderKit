@@ -1,18 +1,16 @@
 //
 //  PointerBuffer.swift
-//  GraphicsHub
+//  Shaderkit
 //
 //  Created by Noah Pikielny on 5/20/23.
 //
 
-import ShaderKit
-
-class PointerBuffer<T: GPUEncodable> {
+public class PointerBuffer<T: GPUEncodable> {
     typealias Pointer = UnsafeMutablePointer<T>
     var pointer: Pointer
     var count: Int
-    var buffer: Buffer
-    init(_ initalValue: [T], count: Int) {
+    public var buffer: Buffer
+    public init(_ initalValue: [T], count: Int) {
         assert(initalValue.count == count)
         self.count = count
         self.pointer = Pointer.allocate(capacity: count)
@@ -22,14 +20,14 @@ class PointerBuffer<T: GPUEncodable> {
         self.buffer = Buffer(constantPointer: self.pointer, count: count)
     }
     
-    init(_ initalValue: T) {
+    public init(_ initalValue: T) {
         self.count = 1
         self.pointer = Pointer.allocate(capacity: 1)
         self.pointer.pointee = initalValue
         self.buffer = Buffer(constantPointer: self.pointer, count: 1)
     }
     
-    subscript(_ index: Int) -> T {
+    public subscript(_ index: Int) -> T {
         get {
             assert(index < count)
             return pointer.advanced(by: index).pointee
@@ -43,18 +41,18 @@ class PointerBuffer<T: GPUEncodable> {
     deinit { pointer.deallocate() }
 }
 
-@propertyWrapper struct UniformBuffer<T: GPUEncodable> {
+@propertyWrapper public struct UniformBuffer<T: GPUEncodable> {
     private var pointer: PointerBuffer<T>
-    var wrappedValue: T {
+    public var wrappedValue: T {
         get { pointer[0] }
         set { pointer[0] = newValue }
     }
     
-    var buffer: Buffer {
+    public var buffer: Buffer {
         pointer.buffer
     }
     
-    init(wrappedValue: T) {
+    public init(wrappedValue: T) {
         self.pointer = PointerBuffer(wrappedValue)
     }
     

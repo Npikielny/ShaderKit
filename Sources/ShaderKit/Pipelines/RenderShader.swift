@@ -138,7 +138,7 @@ Unabled to make render encoder \(pipeline.description)
         wrapped.setTextures(device: device, textures: vertexTextures, function: .vertex)
         wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &fragmentBuffers, function: .fragment)
         wrapped.setBuffers(commandBuffer: commandBuffer, library: library, buffers: &vertexBuffers, function: .vertex)
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: vertexCount)
+        renderEncoder.drawPrimitives(type: pipeline.primitive, vertexStart: vertexStart, vertexCount: vertexCount)
         renderEncoder.endEncoding()
     }
     

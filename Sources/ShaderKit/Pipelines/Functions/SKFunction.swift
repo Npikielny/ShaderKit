@@ -47,23 +47,26 @@ public final class RenderFunction: Pipeline {
     
     var representation: PipelineRepresentation<RenderFunction>
     public var description: String
+    var primitive: MTLPrimitiveType
     
-    init(description: String, representation: PipelineRepresentation<RenderFunction>) {
+    init(description: String, primitive: MTLPrimitiveType, representation: PipelineRepresentation<RenderFunction>) {
         self.description = description
         self.representation = representation
+        self.primitive = primitive
     }
     
-    public convenience init(description: String? = nil, vertex: String, fragment: String, destination: Texture) {
-        self.init(description: description, vertex: vertex, fragment: fragment, destination: .texture(destination))
+    public convenience init(description: String? = nil, primitive: MTLPrimitiveType = .triangle, vertex: String, fragment: String, destination: Texture) {
+        self.init(description: description, primitive: primitive, vertex: vertex, fragment: fragment, destination: .texture(destination))
     }
     
-    public convenience init(description: String? = nil, vertex: String, fragment: String, format: MTLPixelFormat) {
-        self.init(description: description, vertex: vertex, fragment: fragment, destination: .pixelFormat(format))
+    public convenience init(description: String? = nil, primitive: MTLPrimitiveType = .triangle, vertex: String, fragment: String, format: MTLPixelFormat) {
+        self.init(description: description, primitive: primitive, vertex: vertex, fragment: fragment, destination: .pixelFormat(format))
     }
     
-    init(description: String?, vertex: String, fragment: String, destination: RenderPipelineDescriptor) {
+    init(description: String?, primitive: MTLPrimitiveType, vertex: String, fragment: String, destination: RenderPipelineDescriptor) {
         representation = .constructor((vertex, fragment, destination))
         self.description = description ?? "(\(vertex), \(fragment))"
+        self.primitive = primitive
     }
     
     static func construct(device: MTLDevice, library: MTLLibrary, constructor: Constructor) throws -> Pipeline {

@@ -18,12 +18,50 @@ public class RawPointer<T> {
         pointer[index]
     }
     
-    deinit {
-        pointer.deallocate()
-    }
-    
     func write(to: URL, count: Int, options: Data.WritingOptions? = nil) throws {
         try Data(bytes: pointer, count: count).write(to: to, options: [])
+    }
+}
+
+public class ArrayPointer<T> {
+    var pointer: RawPointer<T>
+    var count: Int
+    
+    public init(pointer: RawPointer<T>, count: Int) {
+        self.pointer = pointer
+        self.count = count
+    }
+    
+    public init(_ buffer: Buffer, device: MTLDevice, type: T.Type, count: Int) {
+        self.pointer = RawPointer(buffer
+            .unwrap(device: device)
+            .contents()
+            .bindMemory(to: type, capacity: count))
+        
+        self.count = count
+    }
+    
+    public subscript(_ index: Int) -> T {
+        pointer[index]
+    }
+}
+
+extension ArrayPointer: Sequence {
+    public func makeIterator() -> Iterator {
+        Iterator(pointer: pointer, count: count)
+    }
+    
+    public struct Iterator: IteratorProtocol {
+        let pointer: RawPointer<T>
+        var start = 0
+        var count: Int
+        public typealias Element = T
+        
+        mutating public func next() -> Element? {
+            if self.start >= self.count { return nil }
+            self.start += 1
+            return pointer[self.start - 1]
+        }
     }
 }
 

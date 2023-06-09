@@ -12,6 +12,7 @@ enum CommandEncoder {
     case render(_ encoder: MTLRenderCommandEncoder)
     
     func setBuffers(commandBuffer: MTLCommandBuffer, library: MTLLibrary, buffers: inout [Buffer], function: EncodingFunction) {
+        if buffers.isEmpty { return }
         for (index, buffer) in buffers.enumerated() {
             switch buffer.representation {
                 case let .raw(buffer, _):
@@ -70,6 +71,7 @@ enum CommandEncoder {
     }
     
     func setTextures(device: MTLDevice, textures: [Texture], function: EncodingFunction) {
+        if textures.isEmpty { return }
         let textures = textures.map { texture in
             return texture.unwrap(device: device)
         }

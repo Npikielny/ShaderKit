@@ -12,6 +12,13 @@ public struct BlitPipeline: SKShader {
     public enum Representation {
         case direct((_ encoder: MTLBlitCommandEncoder) -> ())
         case copy(_ from: Texture, _ to: Texture)
+        case copyBuffer(
+            _ source: MTLBuffer,
+            _ sourceOffset: Int = 0,
+            _ destination: MTLBuffer,
+            _ destinationOffseet: Int = 0,
+            _ size: Int
+        )
         case partialCopy(
             _ source: Texture,
             _ sourceMipMapLevel: Int = 0,
@@ -39,7 +46,9 @@ public struct BlitPipeline: SKShader {
 #if os(iOS)
                 return
 #else
-                encoder.synchronize(resource: texture.unwrap(device: device))
+                let unwrapped = texture.unwrap(device: device)
+                if unwrapped.storageMode == .private { return }
+                encoder.synchronize(resource: unwrapped)
 #endif
             case let .direct(closure):
                 closure(encoder)
@@ -47,6 +56,14 @@ public struct BlitPipeline: SKShader {
                 encoder.copy(
                     from: from.construct().unwrap(device: device),
                     to: to.construct().unwrap(device: device)
+                )
+            case let .copyBuffer(source, sourceOffset, destination, destinationOffset, size):
+                encoder.copy(
+                    from: source,
+                    sourceOffset: sourceOffset,
+                    to: destination,
+                    destinationOffset: destinationOffset,
+                    size: size
                 )
             case let .partialCopy(source, sourceMipMap, sourceOrigin, size, destination, destinationMipMap, destinationOrigin):
                 

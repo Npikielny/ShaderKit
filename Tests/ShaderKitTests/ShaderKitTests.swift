@@ -3,9 +3,4 @@ import SwiftUI
 @testable import ShaderKit
 
 final class ShaderKitTests: XCTestCase {
-    
-    func testCommandBufferCompilation() {
-        
-    }
-    
 }

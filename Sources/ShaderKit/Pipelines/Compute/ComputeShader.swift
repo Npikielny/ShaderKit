@@ -12,7 +12,7 @@ public class ComputeShader: SKShader {
     public var textures: [Texture]
     public var buffers: [Buffer]
     
-    public let threadGroupSize: MTLSize
+    public var threadGroupSize: MTLSize
     public var threadGroups: MTLSize?
     
     public init(

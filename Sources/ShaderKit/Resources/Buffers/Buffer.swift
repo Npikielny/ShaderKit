@@ -22,6 +22,10 @@ static let `default` = MTLResourceOptions.storageModeManaged
         self.description = description
         self.representation = representation
     }
+
+    public convenience init(_ description: String? = nil, buffer: MTLBuffer, count: Int) {
+        self.init(description, .raw(buffer, count))
+    }
     
     // mutable
     public convenience init(_ description: String? = nil, mutable: some Bytes, options: MTLResourceOptions? = nil) {

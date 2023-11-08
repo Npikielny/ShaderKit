@@ -5,6 +5,11 @@
 //  Created by Noah Pikielny on 6/2/23.
 //
 
+#if os(iOS)
+import UIKit
+#else
+import Cocoa
+#endif
 import Metal
 
 extension MTLPixelFormat {
@@ -30,6 +35,4 @@ extension MTLPixelFormat {
             return [.bgra8Unorm_srgb, .rgba8Unorm_srgb]
         }
     }
-    
-    
 }

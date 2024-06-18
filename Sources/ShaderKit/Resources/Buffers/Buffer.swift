@@ -43,8 +43,14 @@ static let `default` = MTLResourceOptions.storageModeManaged
     public convenience init<T: GPUEncodable>(_ description: String? = nil, mutable: [T]? = nil, type: T.Type, offset: Int = 0, count: Int, options: MTLResourceOptions? = nil) {
         if let mutable {
             self.init(description) { (commandBuffer: MTLCommandBuffer) in
-                guard let buffer = commandBuffer.device.makeBuffer(length: MemoryLayout<T>.stride * count + offset) else {
-                    fatalError("Unabled to make new buffer–probably not enough memory...")
+                let size = MemoryLayout<T>.stride * count + offset
+                guard let buffer = commandBuffer.device.makeBuffer(length: size) else {
+                    fatalError(
+"""
+Unabled to make new buffer–probably not enough memory...
+Requesting \(size) bytes.
+"""
+                    )
                 }
                 
                 memcpy(buffer.contents() + offset, mutable.bytes, mutable.stride * mutable.count)
@@ -53,8 +59,14 @@ static let `default` = MTLResourceOptions.storageModeManaged
             }
         } else {
             self.init(description) { device in
-                guard let buffer = device.makeBuffer(length: MemoryLayout<T>.stride * count + offset, options: options ?? Self.default) else {
-                    fatalError("Unabled to make new buffer–probably not enough memory...")
+                let size = MemoryLayout<T>.stride * count + offset
+                guard let buffer = device.makeBuffer(length: size, options: options ?? Self.default) else {
+                    fatalError(
+"""
+Unabled to make new buffer–probably not enough memory...
+Requesting \(size) bytes.
+"""
+                    )
                 }
                 return (buffer, count)
             }
